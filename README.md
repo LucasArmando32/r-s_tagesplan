@@ -18,11 +18,21 @@ la sesión se guarda en la tabla `sesiones` + una cookie `httpOnly`. Sin RLS
 cada Server Action que modifica datos llama a `requireAdmin()`
 (`src/lib/auth/guard.js`) antes de tocar la base.
 
+## Acceso
+
+Un solo dominio para todo, sin subdominio aparte para la página pública:
+
+- `/` — página pública de solo lectura para los obreros (sin login, sin
+  posibilidad de editar nada salvo los dos toggles de contenedores/tareas).
+  Es lo que se ve al entrar a la app sin pasar por `/login`.
+- `/login`, `/tablero`, `/tareas`, `/contenedores` — panel interno, solo
+  para la jefa autenticada.
+
 ## Configuración
 
 1. Copiar `.env.local.example` a `.env.local`. Por defecto no hace falta
    tocar nada para desarrollo local (`DB_PATH` apunta a `./data/tablero.db`,
-   se crea solo). Ajustar `PUBLIC_SITE_HOST` según corresponda.
+   se crea solo).
 2. Crear la cuenta de la jefa:
 
    ```bash
@@ -40,16 +50,12 @@ npm install
 npm run dev
 ```
 
-- Host normal (`localhost:3000` sin `PUBLIC_SITE_HOST` configurado a ese
-  valor): panel interno — `/login`, `/tablero` (obras + obreros, todo en la
-  misma pantalla tipo Trello), `/tareas`, `/contenedores`.
-- Host igual a `PUBLIC_SITE_HOST`: página pública de solo lectura en `/`.
+Ver la sección "Acceso" arriba para las rutas.
 
 ## Despliegue (Dokploy)
 
 - App Next.js en su propio contenedor Docker (`Dockerfile`, modo
-  `standalone`), separada de la app de horas, con su propio subdominio para
-  la página pública.
+  `standalone`), separada de la app de horas.
 - El archivo SQLite necesita un **volumen persistente montado en
   `/app/data`** dentro del contenedor (el `Dockerfile` ya crea ese
   directorio y fija `DB_PATH=/app/data/tablero.db`) — sin esto, los datos se
