@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { formatDateDMY } from "@/lib/date";
 import { createTarea, updateTarea, setTareaHecha, deleteTarea } from "./actions";
 
 function WorkerSelect({ obreros, defaultValue, t }) {
@@ -132,7 +133,7 @@ function TareaRow({ tarea, obreros, obrerosById, today }) {
           {tarea.descripcion}
         </h3>
         <p className="text-sm text-black/60">
-          {tarea.fecha} · {workerName}
+          {formatDateDMY(tarea.fecha)} · {workerName}
         </p>
       </div>
 

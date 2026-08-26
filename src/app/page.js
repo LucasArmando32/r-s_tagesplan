@@ -1,6 +1,7 @@
 import { getPublicBoardData, registrarVisita } from "@/lib/data/public";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { formatDateDMY, formatTodayLong } from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ContenedorToggle from "./ContenedorToggle";
@@ -8,14 +9,6 @@ import TareaToggle from "./TareaToggle";
 import AutoRefresh from "./AutoRefresh";
 
 export const dynamic = "force-dynamic";
-
-function formatToday(locale) {
-  const formatted = new Intl.DateTimeFormat(
-    locale === "de" ? "de-CH" : "es-AR",
-    { weekday: "long", day: "numeric", month: "long", year: "numeric" }
-  ).format(new Date());
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
 
 export default async function PublicBoardPage() {
   const locale = await getLocale();
@@ -25,7 +18,7 @@ export default async function PublicBoardPage() {
     path
       .split(".")
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
-  const today = formatToday(locale);
+  const today = formatTodayLong(locale);
 
   return (
     <div className="min-h-screen">
@@ -150,7 +143,7 @@ export default async function PublicBoardPage() {
                     </p>
                     <p className="text-sm text-black/60">
                       {tarea.obreroNombre || t("tasks.unassigned")} ·{" "}
-                      {tarea.fecha}
+                      {formatDateDMY(tarea.fecha)}
                     </p>
                   </div>
                   <TareaToggle id={tarea.id} hecha={tarea.hecha} />

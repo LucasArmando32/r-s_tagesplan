@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -12,6 +12,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { formatTodayLong } from "@/lib/date";
 import {
   moverObrero,
   crearObra,
@@ -22,6 +23,10 @@ import {
   renombrarObrero,
   borrarObrero,
 } from "./actions";
+
+// Cada cuánto se recalcula la fecha mostrada — para que cambie sola si el
+// tablero queda abierto de un día para el otro, sin recargar la página.
+const DATE_REFRESH_MS = 60_000;
 
 const WAREHOUSE_ID = "almacen";
 const FREE_ID = "frei";
@@ -430,13 +435,23 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget }) {
 
 export default function Board({ obras, obreros }) {
   const { t, locale } = useI18n();
-  const today = useMemo(() => {
-    const formatted = new Intl.DateTimeFormat(
-      locale === "de" ? "de-CH" : "es-AR",
-      { weekday: "long", day: "numeric", month: "long", year: "numeric" }
-    ).format(new Date());
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  const [today, setToday] = useState(() => formatTodayLong(locale));
+  const [prevLocale, setPrevLocale] = useState(locale);
+
+  // El idioma pudo cambiar (adjust state during render, sin efecto — ver
+  // el mismo patrón más abajo para obrerosState); el intervalo de abajo
+  // solo se suscribe al reloj, que es justamente lo que un efecto debe
+  // hacer.
+  if (locale !== prevLocale) {
+    setPrevLocale(locale);
+    setToday(formatTodayLong(locale));
+  }
+
+  useEffect(() => {
+    const id = setInterval(() => setToday(formatTodayLong(locale)), DATE_REFRESH_MS);
+    return () => clearInterval(id);
   }, [locale]);
+
   const [prevObreros, setPrevObreros] = useState(obreros);
   const [obrerosState, setObrerosState] = useState(obreros);
   const [activeId, setActiveId] = useState(null);
