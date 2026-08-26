@@ -125,7 +125,7 @@ function TareaRow({ tarea, obreros, obrerosById, today }) {
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-black/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+      <div className="min-w-0 break-words">
         <h3
           className={`font-semibold ${tarea.hecha ? "line-through text-black/40" : ""}`}
         >
@@ -136,7 +136,7 @@ function TareaRow({ tarea, obreros, obrerosById, today }) {
         </p>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           disabled={pending}
@@ -182,7 +182,7 @@ export default function TareasManager({ tareas, obreros, today }) {
 
   return (
     <div className="grid gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold text-[var(--color-brand)]">
           {t("tasks.title")}
         </h2>

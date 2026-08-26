@@ -5,8 +5,17 @@ import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ContenedorToggle from "./ContenedorToggle";
 import TareaToggle from "./TareaToggle";
+import AutoRefresh from "./AutoRefresh";
 
 export const dynamic = "force-dynamic";
+
+function formatToday(locale) {
+  const formatted = new Intl.DateTimeFormat(
+    locale === "de" ? "de-CH" : "es-AR",
+    { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+  ).format(new Date());
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
 
 export default async function PublicBoardPage() {
   const locale = await getLocale();
@@ -16,11 +25,13 @@ export default async function PublicBoardPage() {
     path
       .split(".")
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
+  const today = formatToday(locale);
 
   return (
     <div className="min-h-screen">
+      <AutoRefresh />
       <header className="border-b border-black/10 bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4">
           <Logo />
           <LanguageSwitcher />
         </div>
@@ -28,7 +39,14 @@ export default async function PublicBoardPage() {
 
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold">{t("public.title")}</h1>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 className="text-2xl font-semibold sm:text-3xl">
+              {t("public.title")}
+            </h1>
+            <span className="text-base font-medium text-black/50 sm:text-lg">
+              {today}
+            </span>
+          </div>
           <p className="text-black/60">{t("public.subtitle")}</p>
         </div>
 
@@ -89,9 +107,9 @@ export default async function PublicBoardPage() {
               {contenedores.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm"
                 >
-                  <div>
+                  <div className="min-w-0 break-words">
                     <p className="font-medium">{c.nombre}</p>
                     <p className="text-sm text-black/60">
                       {c.ubicacionNombre || t("common.warehouse")}
@@ -115,9 +133,9 @@ export default async function PublicBoardPage() {
               {tareas.map((tarea) => (
                 <div
                   key={tarea.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm"
                 >
-                  <div>
+                  <div className="min-w-0 break-words">
                     <p
                       className={`font-medium ${tarea.hecha ? "text-black/40 line-through" : ""}`}
                     >

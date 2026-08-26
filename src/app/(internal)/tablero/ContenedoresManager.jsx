@@ -121,12 +121,12 @@ function ContenedorRow({ contenedor, obras, obrasById }) {
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-black/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+      <div className="min-w-0 break-words">
         <h3 className="font-semibold">{contenedor.nombre}</h3>
         <p className="text-sm text-black/60">{locationName}</p>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           disabled={pending}
@@ -174,7 +174,7 @@ export default function ContenedoresManager({ contenedores, obras }) {
 
   return (
     <div className="grid gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold text-[var(--color-brand)]">
           {t("containers.title")}
         </h2>
