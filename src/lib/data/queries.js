@@ -2,7 +2,11 @@ import "server-only";
 import { db, toBool } from "@/lib/db";
 
 function mapObra(row) {
-  return { ...row, activa: toBool(row.activa) };
+  return {
+    ...row,
+    activa: toBool(row.activa),
+    mostrar_en_tablero: toBool(row.mostrar_en_tablero),
+  };
 }
 
 function mapObrero(row) {
@@ -17,10 +21,12 @@ function mapTarea(row) {
   return { ...row, hecha: toBool(row.hecha) };
 }
 
-export function getObras({ includeInactive = false } = {}) {
-  const sql = includeInactive
-    ? "select id, nombre, direccion, notas, activa from obras order by nombre"
-    : "select id, nombre, direccion, notas, activa from obras where activa = 1 order by nombre";
+export function getObras({ includeInactive = false, boardOnly = false } = {}) {
+  const conditions = [];
+  if (!includeInactive) conditions.push("activa = 1");
+  if (boardOnly) conditions.push("mostrar_en_tablero = 1");
+  const where = conditions.length ? `where ${conditions.join(" and ")}` : "";
+  const sql = `select id, nombre, direccion, notas, activa, mostrar_en_tablero from obras ${where} order by nombre`;
   return db.prepare(sql).all().map(mapObra);
 }
 

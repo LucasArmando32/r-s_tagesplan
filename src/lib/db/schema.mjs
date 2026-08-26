@@ -23,6 +23,7 @@ create table if not exists obras (
   direccion text,
   notas text,
   activa integer not null default 1,
+  mostrar_en_tablero integer not null default 1,
   creada_en text not null default (datetime('now'))
 );
 

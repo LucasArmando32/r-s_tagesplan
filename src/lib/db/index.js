@@ -38,15 +38,24 @@ function seedDefaults(database) {
 // Se asegura de que exista una obra con este nombre exacto, sin duplicarla
 // si ya está — a diferencia de seedDefaults(), corre siempre (no solo con
 // la base vacía), así que también agrega el lugar a una base que ya tiene
-// datos cargados.
-function ensureObra(database, nombre) {
+// datos cargados. mostrarEnTablero=false la deja disponible como ubicación
+// para mulden (referencian obras) pero la saca del tablero de arrastrar —
+// para lugares que son solo un punto de acopio, no una obra real con gente.
+function ensureObra(database, nombre, { mostrarEnTablero = true } = {}) {
   const existing = database
     .prepare("select id from obras where nombre = ?")
     .get(nombre);
-  if (!existing) {
+  const flag = mostrarEnTablero ? 1 : 0;
+  if (existing) {
     database
-      .prepare("insert into obras (id, nombre) values (?, ?)")
-      .run(randomUUID(), nombre);
+      .prepare("update obras set mostrar_en_tablero = ? where id = ?")
+      .run(flag, existing.id);
+  } else {
+    database
+      .prepare(
+        "insert into obras (id, nombre, mostrar_en_tablero) values (?, ?, ?)"
+      )
+      .run(randomUUID(), nombre, flag);
   }
 }
 
@@ -67,8 +76,14 @@ function openDatabase() {
       database.exec(SCHEMA_SQL);
       ensureColumn(database, "obreros", "libre", "integer not null default 0");
       ensureColumn(database, "obreros", "tipo", "text not null default 'obrero'");
+      ensureColumn(
+        database,
+        "obras",
+        "mostrar_en_tablero",
+        "integer not null default 1"
+      );
       seedDefaults(database);
-      ensureObra(database, "Hinterkappelen");
+      ensureObra(database, "Hinterkappelen", { mostrarEnTablero: false });
       return database;
     } catch (error) {
       const isLocked = String(error?.message || "").includes("database is locked");

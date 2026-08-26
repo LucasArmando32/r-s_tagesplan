@@ -7,9 +7,14 @@ import { db, toBool } from "@/lib/db";
  * (ver spec, sección 7).
  */
 export function getPublicBoardData() {
+  // Trae todas las obras activas (incluidas las que no aparecen como
+  // columna en el tablero interno, ej. "Hinterkappelen": es solo un punto
+  // de acopio) porque los nombres de ubicación de las mulden pueden
+  // apuntar a cualquiera de ellas. La sección "Baustellen" de más abajo
+  // sí se filtra a las que van en el tablero.
   const obras = db
     .prepare(
-      "select id, nombre, direccion, notas from obras where activa = 1 order by nombre"
+      "select id, nombre, direccion, notas, mostrar_en_tablero from obras where activa = 1 order by nombre"
     )
     .all();
 
@@ -46,10 +51,12 @@ export function getPublicBoardData() {
   });
 
   return {
-    obras: obras.map((obra) => ({
-      ...obra,
-      obreros: obrerosPorObra.get(obra.id) || [],
-    })),
+    obras: obras
+      .filter((obra) => obra.mostrar_en_tablero)
+      .map((obra) => ({
+        ...obra,
+        obreros: obrerosPorObra.get(obra.id) || [],
+      })),
     contenedores: contenedores.map((c) => ({
       ...c,
       lleno: toBool(c.lleno),
