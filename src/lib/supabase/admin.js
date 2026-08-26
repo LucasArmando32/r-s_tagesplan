@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { DB_SCHEMA } from "./schema";
 
 /**
  * Cliente de Supabase con la clave service_role.
@@ -13,6 +14,7 @@ export function createAdminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
     {
+      db: { schema: DB_SCHEMA },
       auth: { autoRefreshToken: false, persistSession: false },
     }
   );
