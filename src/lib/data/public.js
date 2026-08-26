@@ -53,10 +53,18 @@ export function getPublicBoardData() {
   return {
     obras: obras
       .filter((obra) => obra.mostrar_en_tablero)
-      .map((obra) => ({
-        ...obra,
-        obreros: obrerosPorObra.get(obra.id) || [],
-      })),
+      .map((obra) => {
+        const asignados = obrerosPorObra.get(obra.id) || [];
+        // Igual que en el tablero interno: el personal siempre antes que
+        // los vehículos, para poder distinguirlos de un vistazo. sort() es
+        // estable, así que dentro de cada grupo se mantiene el orden
+        // alfabético que ya trae la consulta.
+        const ordenados = [...asignados].sort((a, b) => {
+          if (a.tipo === b.tipo) return 0;
+          return a.tipo === "auto" ? 1 : -1;
+        });
+        return { ...obra, obreros: ordenados };
+      }),
     contenedores: contenedores.map((c) => ({
       ...c,
       lleno: toBool(c.lleno),
