@@ -2,8 +2,9 @@ import { getTareas, getObreros } from "@/lib/data/queries";
 import { todayISO } from "@/lib/date";
 import TareasManager from "./TareasManager";
 
-export default async function TareasPage() {
-  const [tareas, obreros] = await Promise.all([getTareas(), getObreros()]);
+export default function TareasPage() {
+  const tareas = getTareas();
+  const obreros = getObreros();
 
   return <TareasManager tareas={tareas} obreros={obreros} today={todayISO()} />;
 }

@@ -1,29 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/guard";
 
 export async function moverObrero(obreroId, obraId) {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("obreros")
-    .update({ obra_actual_id: obraId })
-    .eq("id", obreroId);
+  await requireAdmin();
 
-  if (error) return { error: error.message };
+  db.prepare("update obreros set obra_actual_id = ? where id = ?").run(
+    obraId,
+    obreroId
+  );
+
   revalidatePath("/tablero");
   revalidatePath("/");
   return { error: null };
 }
 
 export async function updateObraNotas(obraId, notas) {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("obras")
-    .update({ notas: notas || null })
-    .eq("id", obraId);
+  await requireAdmin();
 
-  if (error) return { error: error.message };
+  db.prepare("update obras set notas = ? where id = ?").run(
+    notas || null,
+    obraId
+  );
+
   revalidatePath("/tablero");
   revalidatePath("/");
   return { error: null };

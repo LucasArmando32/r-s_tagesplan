@@ -1,11 +1,14 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/guard";
 
 function revalidateAll() {
   revalidatePath("/admin/obreros");
   revalidatePath("/tablero");
+  revalidatePath("/");
 }
 
 function parseObraId(formData) {
@@ -14,44 +17,43 @@ function parseObraId(formData) {
 }
 
 export async function createObrero(formData) {
+  await requireAdmin();
+
   const nombre = formData.get("nombre")?.toString().trim();
   if (!nombre) return { error: "missing" };
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("obreros").insert({
-    nombre,
-    obra_actual_id: parseObraId(formData),
-  });
+  db.prepare(
+    "insert into obreros (id, nombre, obra_actual_id) values (?, ?, ?)"
+  ).run(randomUUID(), nombre, parseObraId(formData));
 
-  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function updateObrero(id, formData) {
+  await requireAdmin();
+
   const nombre = formData.get("nombre")?.toString().trim();
   if (!id || !nombre) return { error: "missing" };
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("obreros")
-    .update({
-      nombre,
-      obra_actual_id: parseObraId(formData),
-      activo: formData.get("activo") === "on",
-    })
-    .eq("id", id);
+  db.prepare(
+    "update obreros set nombre = ?, obra_actual_id = ?, activo = ? where id = ?"
+  ).run(
+    nombre,
+    parseObraId(formData),
+    formData.get("activo") === "on" ? 1 : 0,
+    id
+  );
 
-  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function deleteObrero(id) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("obreros").delete().eq("id", id);
+  await requireAdmin();
 
-  if (error) return { error: error.message };
+  db.prepare("delete from obreros where id = ?").run(id);
+
   revalidateAll();
   return { error: null };
 }

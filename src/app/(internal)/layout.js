@@ -1,6 +1,9 @@
+import { requireAdmin } from "@/lib/auth/guard";
 import NavBar from "./NavBar";
 
-export default function InternalLayout({ children }) {
+export default async function InternalLayout({ children }) {
+  await requireAdmin();
+
   return (
     <div className="flex min-h-screen flex-col">
       <NavBar />

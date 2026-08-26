@@ -1,8 +1,9 @@
 import { getObras, getObreros } from "@/lib/data/queries";
-import Board from "./Board";
+import BoardClient from "./BoardClient";
 
-export default async function TableroPage() {
-  const [obras, obreros] = await Promise.all([getObras(), getObreros()]);
+export default function TableroPage() {
+  const obras = getObras();
+  const obreros = getObreros();
 
-  return <Board obras={obras} obreros={obreros} />;
+  return <BoardClient obras={obras} obreros={obreros} />;
 }

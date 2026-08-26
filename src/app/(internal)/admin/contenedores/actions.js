@@ -1,7 +1,9 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/guard";
 
 function revalidateAll() {
   revalidatePath("/admin/contenedores");
@@ -14,52 +16,50 @@ function parseUbicacionId(formData) {
 }
 
 export async function createContenedor(formData) {
+  await requireAdmin();
+
   const nombre = formData.get("nombre")?.toString().trim();
   if (!nombre) return { error: "missing" };
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("contenedores").insert({
-    nombre,
-    ubicacion_id: parseUbicacionId(formData),
-  });
+  db.prepare(
+    "insert into contenedores (id, nombre, ubicacion_id) values (?, ?, ?)"
+  ).run(randomUUID(), nombre, parseUbicacionId(formData));
 
-  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function updateContenedor(id, formData) {
+  await requireAdmin();
+
   const nombre = formData.get("nombre")?.toString().trim();
   if (!id || !nombre) return { error: "missing" };
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("contenedores")
-    .update({ nombre, ubicacion_id: parseUbicacionId(formData) })
-    .eq("id", id);
+  db.prepare(
+    "update contenedores set nombre = ?, ubicacion_id = ? where id = ?"
+  ).run(nombre, parseUbicacionId(formData), id);
 
-  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function setContenedorLleno(id, lleno) {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("contenedores")
-    .update({ lleno })
-    .eq("id", id);
+  await requireAdmin();
 
-  if (error) return { error: error.message };
+  db.prepare("update contenedores set lleno = ? where id = ?").run(
+    lleno ? 1 : 0,
+    id
+  );
+
   revalidateAll();
   return { error: null };
 }
 
 export async function deleteContenedor(id) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("contenedores").delete().eq("id", id);
+  await requireAdmin();
 
-  if (error) return { error: error.message };
+  db.prepare("delete from contenedores where id = ?").run(id);
+
   revalidateAll();
   return { error: null };
 }

@@ -9,11 +9,9 @@ import TareaToggle from "./TareaToggle";
 export const dynamic = "force-dynamic";
 
 export default async function PublicBoardPage() {
-  const [{ obras, contenedores, tareas }, locale] = await Promise.all([
-    getPublicBoardData(),
-    getLocale(),
-    registrarVisita(),
-  ]);
+  const locale = await getLocale();
+  registrarVisita();
+  const { obras, contenedores, tareas } = getPublicBoardData();
   const t = (path) =>
     path
       .split(".")

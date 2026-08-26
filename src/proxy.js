@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookieName";
 
 const PROTECTED_PREFIXES = ["/tablero", "/admin"];
 
@@ -7,7 +7,11 @@ function normalizeHost(host) {
   return (host || "").toLowerCase().trim();
 }
 
-export async function proxy(request) {
+// Corre en el runtime Edge: no puede importar node:sqlite. Solo mira si
+// existe la cookie de sesión (para redirigir rápido en el caso obvio); la
+// validación real de la sesión contra la base de datos ocurre en
+// src/lib/auth/guard.js, dentro del layout interno y de cada Server Action.
+export function proxy(request) {
   const { pathname } = request.nextUrl;
   const host = normalizeHost(request.headers.get("host"));
   const publicHost = normalizeHost(process.env.PUBLIC_SITE_HOST);
@@ -23,30 +27,32 @@ export async function proxy(request) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Host interno (panel de la jefa): requiere sesión para /tablero y /admin/*.
-  const { response, user } = await updateSession(request);
+  // Host interno (panel de la jefa).
+  const hasSessionCookie = Boolean(
+    request.cookies.get(SESSION_COOKIE_NAME)?.value
+  );
 
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
   );
 
-  if (isProtected && !user) {
+  if (isProtected && !hasSessionCookie) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (pathname === "/login" && user) {
+  if (pathname === "/login" && hasSessionCookie) {
     return NextResponse.redirect(new URL("/tablero", request.url));
   }
 
   if (pathname === "/") {
     return NextResponse.redirect(
-      new URL(user ? "/tablero" : "/login", request.url)
+      new URL(hasSessionCookie ? "/tablero" : "/login", request.url)
     );
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
