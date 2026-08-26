@@ -6,7 +6,7 @@ function mapObra(row) {
 }
 
 function mapObrero(row) {
-  return { ...row, activo: toBool(row.activo) };
+  return { ...row, activo: toBool(row.activo), libre: toBool(row.libre) };
 }
 
 function mapContenedor(row) {
@@ -26,8 +26,8 @@ export function getObras({ includeInactive = false } = {}) {
 
 export function getObreros({ includeInactive = false } = {}) {
   const sql = includeInactive
-    ? "select id, nombre, obra_actual_id, activo from obreros order by nombre"
-    : "select id, nombre, obra_actual_id, activo from obreros where activo = 1 order by nombre";
+    ? "select id, nombre, obra_actual_id, libre, activo from obreros order by nombre"
+    : "select id, nombre, obra_actual_id, libre, activo from obreros where activo = 1 order by nombre";
   return db.prepare(sql).all().map(mapObrero);
 }
 

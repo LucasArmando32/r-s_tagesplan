@@ -183,7 +183,9 @@ export default function TareasManager({ tareas, obreros, today }) {
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">{t("tasks.title")}</h2>
+        <h2 className="text-xl font-semibold text-[var(--color-brand)]">
+          {t("tasks.title")}
+        </h2>
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}

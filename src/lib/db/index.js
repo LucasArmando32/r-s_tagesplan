@@ -12,6 +12,17 @@ function sleepSync(ms) {
   Atomics.wait(view, 0, 0, ms);
 }
 
+// Agrega columnas nuevas a bases ya existentes (creadas antes de que
+// existieran). ALTER TABLE ADD COLUMN en SQLite no toca las filas ya
+// guardadas — solo les da el valor default a la columna nueva.
+function ensureColumn(database, table, column, definition) {
+  const columns = database.prepare(`PRAGMA table_info(${table})`).all();
+  const exists = columns.some((c) => c.name === column);
+  if (!exists) {
+    database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
 // Si todavía no hay ninguna obra cargada (primera vez que arranca la app
 // contra esta base), se precarga "Büro" como columna por defecto — así
 // siempre hay un lugar obvio para poner a alguien que no está en una obra.
@@ -39,6 +50,7 @@ function openDatabase() {
       database.exec("PRAGMA journal_mode = WAL;");
       database.exec("PRAGMA foreign_keys = ON;");
       database.exec(SCHEMA_SQL);
+      ensureColumn(database, "obreros", "libre", "integer not null default 0");
       seedDefaults(database);
       return database;
     } catch (error) {

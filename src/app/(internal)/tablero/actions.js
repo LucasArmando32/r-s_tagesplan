@@ -10,13 +10,12 @@ function revalidateAll() {
   revalidatePath("/");
 }
 
-export async function moverObrero(obreroId, obraId) {
+export async function moverObrero(obreroId, obraId, libre) {
   await requireAdmin();
 
-  db.prepare("update obreros set obra_actual_id = ? where id = ?").run(
-    obraId,
-    obreroId
-  );
+  db.prepare(
+    "update obreros set obra_actual_id = ?, libre = ? where id = ?"
+  ).run(obraId, libre ? 1 : 0, obreroId);
 
   revalidateAll();
   return { error: null };
@@ -34,13 +33,28 @@ export async function crearObra(nombre, direccion, notas) {
   return { error: null };
 }
 
-export async function actualizarObra(id, nombre, direccion, notas) {
+export async function actualizarObra(id, nombre, direccion) {
   await requireAdmin();
   if (!id || !nombre?.trim()) return { error: "missing" };
 
-  db.prepare(
-    "update obras set nombre = ?, direccion = ?, notas = ? where id = ?"
-  ).run(nombre.trim(), direccion || null, notas || null, id);
+  db.prepare("update obras set nombre = ?, direccion = ? where id = ?").run(
+    nombre.trim(),
+    direccion || null,
+    id
+  );
+
+  revalidateAll();
+  return { error: null };
+}
+
+export async function actualizarNotas(id, notas) {
+  await requireAdmin();
+  if (!id) return { error: "missing" };
+
+  db.prepare("update obras set notas = ? where id = ?").run(
+    notas || null,
+    id
+  );
 
   revalidateAll();
   return { error: null };
@@ -55,13 +69,13 @@ export async function borrarObra(id) {
   return { error: null };
 }
 
-export async function crearObrero(nombre, obraId) {
+export async function crearObrero(nombre, obraId, libre) {
   await requireAdmin();
   if (!nombre?.trim()) return { error: "missing" };
 
   db.prepare(
-    "insert into obreros (id, nombre, obra_actual_id) values (?, ?, ?)"
-  ).run(randomUUID(), nombre.trim(), obraId || null);
+    "insert into obreros (id, nombre, obra_actual_id, libre) values (?, ?, ?, ?)"
+  ).run(randomUUID(), nombre.trim(), obraId || null, libre ? 1 : 0);
 
   revalidateAll();
   return { error: null };

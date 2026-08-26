@@ -175,7 +175,9 @@ export default function ContenedoresManager({ contenedores, obras }) {
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">{t("containers.title")}</h2>
+        <h2 className="text-xl font-semibold text-[var(--color-brand)]">
+          {t("containers.title")}
+        </h2>
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
