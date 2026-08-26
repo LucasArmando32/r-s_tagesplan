@@ -26,11 +26,6 @@ export const dictionaries = {
       confirm_delete: "Wirklich endgültig löschen?",
       none: "—",
     },
-    nav: {
-      board: "Tagesplan",
-      containers: "Mulde",
-      tasks: "Aufgaben",
-    },
     login: {
       title: "Anmeldung",
       subtitle: "Nur für die Geschäftsleitung",
@@ -108,11 +103,6 @@ export const dictionaries = {
       save_error: "Algo salió mal. Intentá de nuevo.",
       confirm_delete: "¿Borrar definitivamente?",
       none: "—",
-    },
-    nav: {
-      board: "Tablero",
-      containers: "Contenedores",
-      tasks: "Tareas",
     },
     login: {
       title: "Iniciar sesión",

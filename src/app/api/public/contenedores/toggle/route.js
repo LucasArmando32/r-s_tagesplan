@@ -36,6 +36,6 @@ export async function POST(request) {
   );
 
   revalidatePath("/");
-  revalidatePath("/contenedores");
+  revalidatePath("/tablero");
   return NextResponse.json({ id, lleno: Boolean(nextValue) });
 }

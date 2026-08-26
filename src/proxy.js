@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookieName";
 
-const PROTECTED_PREFIXES = ["/tablero", "/tareas", "/contenedores"];
+const PROTECTED_PREFIXES = ["/tablero"];
 
 // Corre en el runtime Edge: no puede importar node:sqlite. Solo mira si
 // existe la cookie de sesión (para redirigir rápido en el caso obvio); la
@@ -27,9 +27,13 @@ export function proxy(request) {
     return NextResponse.redirect(url);
   }
 
-  if (pathname === "/login" && hasSessionCookie) {
-    return NextResponse.redirect(new URL("/tablero", request.url));
-  }
+  // OJO: no redirigir "/login" -> "/tablero" solo por la presencia de la
+  // cookie (sin poder validarla contra la base, aquí en el Edge). Si la
+  // cookie queda apuntando a una sesión que ya no existe (por ejemplo tras
+  // reiniciar la base de datos), eso causaría un bucle infinito entre
+  // /login y /tablero. Esa redirección ya la hace correctamente
+  // src/app/login/page.js con getCurrentUser(), que sí valida contra la
+  // base de datos.
 
   return NextResponse.next();
 }

@@ -400,7 +400,14 @@ function Column({ id, obra, obreros }) {
 }
 
 export default function Board({ obras, obreros }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const today = useMemo(() => {
+    const formatted = new Intl.DateTimeFormat(
+      locale === "de" ? "de-CH" : "es-AR",
+      { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+    ).format(new Date());
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }, [locale]);
   const [prevObreros, setPrevObreros] = useState(obreros);
   const [obrerosState, setObrerosState] = useState(obreros);
   const [activeId, setActiveId] = useState(null);
@@ -466,7 +473,12 @@ export default function Board({ obras, obreros }) {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold">{t("board.title")}</h1>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 className="text-2xl font-semibold">{t("board.title")}</h1>
+          <span className="text-sm font-medium text-black/50">
+            {today}
+          </span>
+        </div>
         <p className="text-sm text-black/60">{t("board.subtitle")}</p>
       </div>
 

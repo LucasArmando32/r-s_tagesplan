@@ -1,21 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { signOutAction } from "@/lib/actions/auth";
 
-const LINKS = [
-  { href: "/tablero", key: "nav.board" },
-  { href: "/tareas", key: "nav.tasks" },
-  { href: "/contenedores", key: "nav.containers" },
-];
-
 export default function NavBar() {
   const { t } = useI18n();
-  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-20 border-b border-black/10 bg-white/95 backdrop-blur">
@@ -24,27 +16,7 @@ export default function NavBar() {
           <Logo />
         </Link>
 
-        <nav className="flex flex-1 flex-wrap gap-1 text-sm">
-          {LINKS.map((link) => {
-            const isActive =
-              pathname === link.href || pathname.startsWith(link.href + "/");
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
-                  isActive
-                    ? "bg-[var(--color-brand)] text-white"
-                    : "text-black/70 hover:bg-black/5"
-                }`}
-              >
-                {t(link.key)}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-3">
           <LanguageSwitcher />
           <form action={signOutAction}>
             <button

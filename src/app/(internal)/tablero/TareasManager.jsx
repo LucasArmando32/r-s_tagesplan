@@ -2,41 +2,34 @@
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import {
-  createContenedor,
-  updateContenedor,
-  setContenedorLleno,
-  deleteContenedor,
-} from "./actions";
+import { createTarea, updateTarea, setTareaHecha, deleteTarea } from "./actions";
 
-function LocationSelect({ obras, defaultValue, t }) {
+function WorkerSelect({ obreros, defaultValue, t }) {
   return (
     <select
-      name="ubicacion_id"
+      name="obrero_asignado_id"
       defaultValue={defaultValue || ""}
       className="mt-1 w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-base focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
     >
-      <option value="">{t("common.warehouse")}</option>
-      {obras.map((obra) => (
-        <option key={obra.id} value={obra.id}>
-          {obra.nombre}
+      <option value="">{t("tasks.unassigned")}</option>
+      {obreros.map((obrero) => (
+        <option key={obrero.id} value={obrero.id}>
+          {obrero.nombre}
         </option>
       ))}
     </select>
   );
 }
 
-function ContenedorForm({ contenedor, obras, onDone }) {
+function TareaForm({ tarea, obreros, today, onDone }) {
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState(null);
-  const isEdit = Boolean(contenedor);
+  const isEdit = Boolean(tarea);
 
   function handleSubmit(formData) {
     startTransition(async () => {
-      const action = isEdit
-        ? updateContenedor.bind(null, contenedor.id)
-        : createContenedor;
+      const action = isEdit ? updateTarea.bind(null, tarea.id) : createTarea;
       const result = await action(formData);
       if (result?.error) {
         setError(result.error);
@@ -52,21 +45,32 @@ function ContenedorForm({ contenedor, obras, onDone }) {
       action={handleSubmit}
       className="grid gap-3 rounded-xl border border-black/10 bg-white p-4 sm:grid-cols-2"
     >
-      <label className="text-sm font-medium">
-        {t("common.name")}
+      <label className="text-sm font-medium sm:col-span-2">
+        {t("tasks.description")}
         <input
-          name="nombre"
+          name="descripcion"
           required
-          defaultValue={contenedor?.nombre}
+          defaultValue={tarea?.descripcion}
           className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-base focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
         />
       </label>
 
       <label className="text-sm font-medium">
-        {t("containers.location")}
-        <LocationSelect
-          obras={obras}
-          defaultValue={contenedor?.ubicacion_id}
+        {t("tasks.date")}
+        <input
+          type="date"
+          name="fecha"
+          required
+          defaultValue={tarea?.fecha || today}
+          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-base focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+        />
+      </label>
+
+      <label className="text-sm font-medium">
+        {t("tasks.assigned_to")}
+        <WorkerSelect
+          obreros={obreros}
+          defaultValue={tarea?.obrero_asignado_id}
           t={t}
         />
       </label>
@@ -99,30 +103,37 @@ function ContenedorForm({ contenedor, obras, onDone }) {
   );
 }
 
-function ContenedorRow({ contenedor, obras, obrasById }) {
+function TareaRow({ tarea, obreros, obrerosById, today }) {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
 
   if (editing) {
     return (
-      <ContenedorForm
-        contenedor={contenedor}
-        obras={obras}
+      <TareaForm
+        tarea={tarea}
+        obreros={obreros}
+        today={today}
         onDone={() => setEditing(false)}
       />
     );
   }
 
-  const locationName = contenedor.ubicacion_id
-    ? obrasById.get(contenedor.ubicacion_id)?.nombre || t("common.none")
-    : t("common.warehouse");
+  const workerName = tarea.obrero_asignado_id
+    ? obrerosById.get(tarea.obrero_asignado_id)?.nombre || t("common.none")
+    : t("tasks.unassigned");
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-black/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h3 className="font-semibold">{contenedor.nombre}</h3>
-        <p className="text-sm text-black/60">{locationName}</p>
+        <h3
+          className={`font-semibold ${tarea.hecha ? "line-through text-black/40" : ""}`}
+        >
+          {tarea.descripcion}
+        </h3>
+        <p className="text-sm text-black/60">
+          {tarea.fecha} · {workerName}
+        </p>
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
@@ -130,17 +141,15 @@ function ContenedorRow({ contenedor, obras, obrasById }) {
           type="button"
           disabled={pending}
           onClick={() =>
-            startTransition(() =>
-              setContenedorLleno(contenedor.id, !contenedor.lleno)
-            )
+            startTransition(() => setTareaHecha(tarea.id, !tarea.hecha))
           }
           className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-            contenedor.lleno
+            tarea.hecha
               ? "bg-[var(--color-brand)] text-white"
               : "bg-black/5 text-black/70"
           } disabled:opacity-60`}
         >
-          {contenedor.lleno ? t("containers.full") : t("containers.not_full")}
+          {tarea.hecha ? t("tasks.done") : t("tasks.not_done")}
         </button>
         <button
           type="button"
@@ -154,7 +163,7 @@ function ContenedorRow({ contenedor, obras, obrasById }) {
           disabled={pending}
           onClick={() => {
             if (confirm(t("common.confirm_delete"))) {
-              startTransition(() => deleteContenedor(contenedor.id));
+              startTransition(() => deleteTarea(tarea.id));
             }
           }}
           className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
@@ -166,38 +175,43 @@ function ContenedorRow({ contenedor, obras, obrasById }) {
   );
 }
 
-export default function ContenedoresManager({ contenedores, obras }) {
+export default function TareasManager({ tareas, obreros, today }) {
   const { t } = useI18n();
   const [showForm, setShowForm] = useState(false);
-  const obrasById = new Map(obras.map((o) => [o.id, o]));
+  const obrerosById = new Map(obreros.map((o) => [o.id, o]));
 
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("containers.title")}</h1>
+        <h2 className="text-xl font-semibold">{t("tasks.title")}</h2>
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
           className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
-          {t("containers.new")}
+          {t("tasks.new")}
         </button>
       </div>
 
       {showForm && (
-        <ContenedorForm obras={obras} onDone={() => setShowForm(false)} />
+        <TareaForm
+          obreros={obreros}
+          today={today}
+          onDone={() => setShowForm(false)}
+        />
       )}
 
-      {contenedores.length === 0 ? (
-        <p className="text-black/60">{t("containers.empty")}</p>
+      {tareas.length === 0 ? (
+        <p className="text-black/60">{t("tasks.empty")}</p>
       ) : (
         <div className="grid gap-3">
-          {contenedores.map((contenedor) => (
-            <ContenedorRow
-              key={contenedor.id}
-              contenedor={contenedor}
-              obras={obras}
-              obrasById={obrasById}
+          {tareas.map((tarea) => (
+            <TareaRow
+              key={tarea.id}
+              tarea={tarea}
+              obreros={obreros}
+              obrerosById={obrerosById}
+              today={today}
             />
           ))}
         </div>

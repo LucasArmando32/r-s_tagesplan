@@ -25,8 +25,10 @@ Un solo dominio para todo, sin subdominio aparte para la página pública:
 - `/` — página pública de solo lectura para los obreros (sin login, sin
   posibilidad de editar nada salvo los dos toggles de contenedores/tareas).
   Es lo que se ve al entrar a la app sin pasar por `/login`.
-- `/login`, `/tablero`, `/tareas`, `/contenedores` — panel interno, solo
-  para la jefa autenticada.
+- `/login`, `/tablero` — panel interno, solo para la jefa autenticada.
+  Todo vive en `/tablero`: el tablero de obras/obreros arriba (estilo
+  Trello), y las secciones de contenedores y tareas debajo, en la misma
+  página.
 
 ## Configuración
 
