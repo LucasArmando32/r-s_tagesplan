@@ -86,7 +86,7 @@ function TareaForm({ tarea, obreros, today, onDone }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-dark)] disabled:opacity-60"
         >
           {pending ? t("common.loading") : t("common.save")}
         </button>
@@ -190,7 +190,7 @@ export default function TareasManager({ tareas, obreros, today }) {
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
-          className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-dark)]"
         >
           {t("tasks.new")}
         </button>

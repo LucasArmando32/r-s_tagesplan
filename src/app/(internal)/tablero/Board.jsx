@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { formatTodayLong } from "@/lib/date";
+import CarIcon from "@/components/CarIcon";
 import {
   moverObrero,
   crearObra,
@@ -32,9 +33,9 @@ const WAREHOUSE_ID = "almacen";
 const FREE_ID = "frei";
 
 const COLUMN_VARIANTS = {
-  lager: "border-sky-200 bg-sky-50",
-  frei: "border-emerald-200 bg-emerald-50",
-  obra: "border-rose-100 bg-white",
+  lager: "border-sky-200/80 bg-gradient-to-b from-sky-50 to-white",
+  frei: "border-emerald-200/80 bg-gradient-to-b from-emerald-50 to-white",
+  obra: "border-[var(--color-brand)]/15 bg-white",
 };
 
 function WorkerCard({ obrero }) {
@@ -124,13 +125,15 @@ function WorkerCard({ obrero }) {
       {...listeners}
       {...attributes}
       onClick={() => setEditing(true)}
-      className={`flex cursor-grab touch-none select-none items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium shadow-sm active:cursor-grabbing ${
+      className={`flex cursor-grab touch-none select-none items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing ${
         isAuto
-          ? "border-slate-300 bg-slate-100 text-slate-800"
+          ? "border-slate-300 bg-slate-100 text-slate-700"
           : "border-black/10 bg-white"
       } ${isDragging ? "opacity-30" : ""}`}
     >
-      {isAuto && <span aria-hidden="true">🚗</span>}
+      {isAuto && (
+        <CarIcon className="h-3.5 w-5 shrink-0 text-slate-500" />
+      )}
       {obrero.nombre}
     </div>
   );
@@ -330,7 +333,7 @@ function AddSiteColumn() {
       <button
         type="button"
         onClick={() => setAdding(true)}
-        className="flex h-12 w-72 shrink-0 items-center justify-center rounded-xl border border-dashed border-[var(--color-brand)]/30 text-sm font-medium text-[var(--color-brand)]/70 hover:border-[var(--color-brand)] hover:text-[var(--color-brand)]"
+        className="flex h-12 w-72 shrink-0 items-center justify-center rounded-2xl border border-dashed border-[var(--color-brand)]/30 text-sm font-medium text-[var(--color-brand)]/70 transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-muted)] hover:text-[var(--color-brand)]"
       >
         + {t("board.new_site")}
       </button>
@@ -338,7 +341,7 @@ function AddSiteColumn() {
   }
 
   return (
-    <div className="w-72 shrink-0 rounded-xl border border-rose-100 bg-white p-3">
+    <div className="w-72 shrink-0 rounded-2xl border border-[var(--color-brand)]/15 bg-white p-3 shadow-sm">
       <input
         autoFocus
         value={nombre}
@@ -378,10 +381,16 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [editing, setEditing] = useState(false);
 
+  // El personal siempre va antes que los vehículos, para poder distinguirlos
+  // de un vistazo al arrastrar — sort() es estable, así que dentro de cada
+  // grupo se mantiene el orden alfabético que ya trae la consulta.
+  const personas = obreros.filter((o) => o.tipo !== "auto");
+  const vehiculos = obreros.filter((o) => o.tipo === "auto");
+
   return (
     <div
       ref={setNodeRef}
-      className={`flex w-72 shrink-0 flex-col rounded-xl border p-3 transition-colors ${
+      className={`flex w-72 shrink-0 flex-col rounded-2xl border p-3 shadow-sm transition-colors ${
         isOver
           ? "border-[var(--color-brand)] bg-[var(--color-brand-light)]"
           : COLUMN_VARIANTS[variant]
@@ -415,9 +424,17 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget }) {
             {t("board.no_workers")}
           </p>
         ) : (
-          obreros.map((obrero) => (
-            <WorkerCard key={obrero.id} obrero={obrero} />
-          ))
+          <>
+            {personas.map((obrero) => (
+              <WorkerCard key={obrero.id} obrero={obrero} />
+            ))}
+            {vehiculos.length > 0 && personas.length > 0 && (
+              <div className="my-0.5 border-t border-dashed border-black/10" />
+            )}
+            {vehiculos.map((obrero) => (
+              <WorkerCard key={obrero.id} obrero={obrero} />
+            ))}
+          </>
         )}
       </div>
 
@@ -536,14 +553,16 @@ export default function Board({ obras, obreros }) {
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-5 border-b border-black/5 pb-4">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="text-2xl font-semibold text-[var(--color-brand-dark)]">
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-brand-dark)] sm:text-3xl">
             {t("board.title")}
           </h1>
-          <span className="text-sm font-medium text-black/50">{today}</span>
+          <span className="text-sm font-medium text-black/50 sm:text-base">
+            {today}
+          </span>
         </div>
-        <p className="text-sm text-black/60">{t("board.subtitle")}</p>
+        <p className="mt-1 text-sm text-black/60">{t("board.subtitle")}</p>
       </div>
 
       <DndContext
@@ -584,7 +603,16 @@ export default function Board({ obras, obreros }) {
 
         <DragOverlay>
           {activeWorker ? (
-            <div className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-medium shadow-lg">
+            <div
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium shadow-lg ${
+                activeWorker.tipo === "auto"
+                  ? "border-slate-300 bg-slate-100 text-slate-700"
+                  : "border-black/10 bg-white"
+              }`}
+            >
+              {activeWorker.tipo === "auto" && (
+                <CarIcon className="h-3.5 w-5 shrink-0 text-slate-500" />
+              )}
               {activeWorker.nombre}
             </div>
           ) : null}

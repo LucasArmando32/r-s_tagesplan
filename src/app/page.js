@@ -4,6 +4,7 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 import { formatDateDMY, formatTodayLong } from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import CarIcon from "@/components/CarIcon";
 import ContenedorToggle from "./ContenedorToggle";
 import TareaToggle from "./TareaToggle";
 import AutoRefresh from "./AutoRefresh";
@@ -23,26 +24,25 @@ export default async function PublicBoardPage() {
   return (
     <div className="min-h-screen">
       <AutoRefresh />
-      <header className="border-b border-black/10 bg-white">
+      <header className="bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-darker)] shadow-md">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <Logo />
+          <Logo inverted />
           <LanguageSwitcher />
+        </div>
+        <div className="mx-auto max-w-3xl px-4 pb-5">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+              {t("public.title")}
+            </h1>
+            <span className="text-base font-medium text-white/70 sm:text-lg">
+              {today}
+            </span>
+          </div>
+          <p className="text-white/80">{t("public.subtitle")}</p>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <div className="mb-8">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="text-2xl font-semibold sm:text-3xl">
-              {t("public.title")}
-            </h1>
-            <span className="text-base font-medium text-black/50 sm:text-lg">
-              {today}
-            </span>
-          </div>
-          <p className="text-black/60">{t("public.subtitle")}</p>
-        </div>
-
         <section className="mb-10">
           <h2 className="mb-3 text-lg font-semibold text-[var(--color-brand)]">
             {t("public.sites_heading")}
@@ -83,7 +83,7 @@ export default async function PublicBoardPage() {
                           }`}
                         >
                           {obrero.tipo === "auto" && (
-                            <span aria-hidden="true">🚗</span>
+                            <CarIcon className="h-3.5 w-5 shrink-0 text-slate-500" />
                           )}
                           {obrero.nombre}
                         </span>

@@ -23,9 +23,12 @@ export default function LoginForm({ next }) {
       </div>
       <form
         action={formAction}
-        className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm"
+        className="rounded-2xl border border-black/10 bg-white p-6 shadow-lg shadow-black/5"
       >
-        <h1 className="text-xl font-semibold">{t("login.title")}</h1>
+        <div className="mb-1 h-1 w-10 rounded-full bg-[var(--color-brand)]" />
+        <h1 className="mt-3 text-xl font-semibold text-[var(--color-brand-dark)]">
+          {t("login.title")}
+        </h1>
         <p className="mt-1 text-sm text-black/60">{t("login.subtitle")}</p>
 
         <input type="hidden" name="next" value={next} />
@@ -61,7 +64,7 @@ export default function LoginForm({ next }) {
         <button
           type="submit"
           disabled={pending}
-          className="mt-6 w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="mt-6 w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-brand-dark)] disabled:opacity-60"
         >
           {pending ? t("common.loading") : t("login.submit")}
         </button>
