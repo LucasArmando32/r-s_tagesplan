@@ -35,6 +35,21 @@ function seedDefaults(database) {
   }
 }
 
+// Se asegura de que exista una obra con este nombre exacto, sin duplicarla
+// si ya está — a diferencia de seedDefaults(), corre siempre (no solo con
+// la base vacía), así que también agrega el lugar a una base que ya tiene
+// datos cargados.
+function ensureObra(database, nombre) {
+  const existing = database
+    .prepare("select id from obras where nombre = ?")
+    .get(nombre);
+  if (!existing) {
+    database
+      .prepare("insert into obras (id, nombre) values (?, ?)")
+      .run(randomUUID(), nombre);
+  }
+}
+
 function openDatabase() {
   mkdirSync(dirname(DB_PATH), { recursive: true });
 
@@ -53,6 +68,7 @@ function openDatabase() {
       ensureColumn(database, "obreros", "libre", "integer not null default 0");
       ensureColumn(database, "obreros", "tipo", "text not null default 'obrero'");
       seedDefaults(database);
+      ensureObra(database, "Hinterkappelen");
       return database;
     } catch (error) {
       const isLocked = String(error?.message || "").includes("database is locked");
