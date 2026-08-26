@@ -83,8 +83,15 @@ export default async function PublicBoardPage() {
                       obra.obreros.map((obrero) => (
                         <span
                           key={obrero.id}
-                          className="rounded-full bg-black/5 px-3 py-1 text-sm font-medium"
+                          className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
+                            obrero.tipo === "auto"
+                              ? "bg-slate-200 text-slate-800"
+                              : "bg-black/5"
+                          }`}
                         >
+                          {obrero.tipo === "auto" && (
+                            <span aria-hidden="true">🚗</span>
+                          )}
                           {obrero.nombre}
                         </span>
                       ))

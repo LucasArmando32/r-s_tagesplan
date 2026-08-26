@@ -110,6 +110,8 @@ function WorkerCard({ obrero }) {
     );
   }
 
+  const isAuto = obrero.tipo === "auto";
+
   return (
     <div
       ref={setNodeRef}
@@ -117,16 +119,19 @@ function WorkerCard({ obrero }) {
       {...listeners}
       {...attributes}
       onClick={() => setEditing(true)}
-      className={`cursor-grab touch-none select-none rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-medium shadow-sm active:cursor-grabbing ${
-        isDragging ? "opacity-30" : ""
-      }`}
+      className={`flex cursor-grab touch-none select-none items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium shadow-sm active:cursor-grabbing ${
+        isAuto
+          ? "border-slate-300 bg-slate-100 text-slate-800"
+          : "border-black/10 bg-white"
+      } ${isDragging ? "opacity-30" : ""}`}
     >
+      {isAuto && <span aria-hidden="true">🚗</span>}
       {obrero.nombre}
     </div>
   );
 }
 
-function AddWorkerRow({ obraId, libre }) {
+function AddWorkerRow({ obraId, libre, tipo = "obrero" }) {
   const { t } = useI18n();
   const [adding, setAdding] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -140,7 +145,7 @@ function AddWorkerRow({ obraId, libre }) {
       return;
     }
     startTransition(async () => {
-      await crearObrero(trimmed, obraId, libre);
+      await crearObrero(trimmed, obraId, libre, tipo);
       setNombre("");
       inputRef.current?.focus();
     });
@@ -153,7 +158,7 @@ function AddWorkerRow({ obraId, libre }) {
         onClick={() => setAdding(true)}
         className="rounded-lg px-2 py-1.5 text-left text-sm text-black/50 hover:bg-black/10 hover:text-black/70"
       >
-        + {t("board.new_worker")}
+        + {tipo === "auto" ? t("board.new_car") : t("board.new_worker")}
       </button>
     );
   }
@@ -411,8 +416,13 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget }) {
         )}
       </div>
 
-      <div className="mt-2">
+      <div className="mt-2 flex flex-col">
         <AddWorkerRow obraId={addTarget.obraId} libre={addTarget.libre} />
+        <AddWorkerRow
+          obraId={addTarget.obraId}
+          libre={addTarget.libre}
+          tipo="auto"
+        />
       </div>
     </div>
   );

@@ -69,13 +69,19 @@ export async function borrarObra(id) {
   return { error: null };
 }
 
-export async function crearObrero(nombre, obraId, libre) {
+export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
   await requireAdmin();
   if (!nombre?.trim()) return { error: "missing" };
 
   db.prepare(
-    "insert into obreros (id, nombre, obra_actual_id, libre) values (?, ?, ?, ?)"
-  ).run(randomUUID(), nombre.trim(), obraId || null, libre ? 1 : 0);
+    "insert into obreros (id, nombre, obra_actual_id, libre, tipo) values (?, ?, ?, ?, ?)"
+  ).run(
+    randomUUID(),
+    nombre.trim(),
+    obraId || null,
+    libre ? 1 : 0,
+    tipo === "auto" ? "auto" : "obrero"
+  );
 
   revalidateAll();
   return { error: null };

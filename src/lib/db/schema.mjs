@@ -31,6 +31,7 @@ create table if not exists obreros (
   nombre text not null,
   obra_actual_id text references obras(id) on delete set null,
   libre integer not null default 0,
+  tipo text not null default 'obrero',
   activo integer not null default 1,
   creado_en text not null default (datetime('now'))
 );

@@ -26,8 +26,8 @@ export function getObras({ includeInactive = false } = {}) {
 
 export function getObreros({ includeInactive = false } = {}) {
   const sql = includeInactive
-    ? "select id, nombre, obra_actual_id, libre, activo from obreros order by nombre"
-    : "select id, nombre, obra_actual_id, libre, activo from obreros where activo = 1 order by nombre";
+    ? "select id, nombre, obra_actual_id, libre, tipo, activo from obreros order by nombre"
+    : "select id, nombre, obra_actual_id, libre, tipo, activo from obreros where activo = 1 order by nombre";
   return db.prepare(sql).all().map(mapObrero);
 }
 

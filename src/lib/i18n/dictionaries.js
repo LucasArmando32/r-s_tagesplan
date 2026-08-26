@@ -41,6 +41,7 @@ export const dictionaries = {
       no_workers: "Keine Arbeiter zugeteilt",
       new_site: "Baustelle",
       new_worker: "Arbeiter",
+      new_car: "Auto",
       notes_placeholder: "z. B. Zugang über den Hinterhof, Kunde ist den ganzen Tag vor Ort…",
     },
     containers: {
@@ -73,7 +74,7 @@ export const dictionaries = {
       subtitle: "Übersicht für heute",
       sites_heading: "Baustellen",
       containers_heading: "Mulden",
-      tasks_heading: "Aufgaben des Tages",
+      tasks_heading: "Aufgaben",
       no_sites: "Aktuell keine aktiven Baustellen.",
       no_containers: "Aktuell keine Mulden erfasst.",
       no_tasks: "Aktuell keine Aufgaben für heute.",
@@ -120,6 +121,7 @@ export const dictionaries = {
       no_workers: "Sin obreros asignados",
       new_site: "Obra",
       new_worker: "Obrero",
+      new_car: "Auto",
       notes_placeholder: "ej. cuidado, acceso por el patio trasero, cliente presente todo el día…",
     },
     containers: {
@@ -152,7 +154,7 @@ export const dictionaries = {
       subtitle: "Resumen de hoy",
       sites_heading: "Obras",
       containers_heading: "Contenedores",
-      tasks_heading: "Tareas del día",
+      tasks_heading: "Tareas",
       no_sites: "Por ahora no hay obras activas.",
       no_containers: "Por ahora no hay contenedores cargados.",
       no_tasks: "Por ahora no hay tareas para hoy.",

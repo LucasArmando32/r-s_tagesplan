@@ -15,7 +15,7 @@ export function getPublicBoardData() {
 
   const obreros = db
     .prepare(
-      "select id, nombre, obra_actual_id from obreros where activo = 1 order by nombre"
+      "select id, nombre, obra_actual_id, tipo from obreros where activo = 1 order by nombre"
     )
     .all();
 

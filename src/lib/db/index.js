@@ -51,6 +51,7 @@ function openDatabase() {
       database.exec("PRAGMA foreign_keys = ON;");
       database.exec(SCHEMA_SQL);
       ensureColumn(database, "obreros", "libre", "integer not null default 0");
+      ensureColumn(database, "obreros", "tipo", "text not null default 'obrero'");
       seedDefaults(database);
       return database;
     } catch (error) {
