@@ -41,7 +41,8 @@ npm run dev
 ```
 
 - Host normal (`localhost:3000` sin `PUBLIC_SITE_HOST` configurado a ese
-  valor): panel interno — `/login`, `/tablero`, `/admin/*`.
+  valor): panel interno — `/login`, `/tablero` (obras + obreros, todo en la
+  misma pantalla tipo Trello), `/tareas`, `/contenedores`.
 - Host igual a `PUBLIC_SITE_HOST`: página pública de solo lectura en `/`.
 
 ## Despliegue (Dokploy)

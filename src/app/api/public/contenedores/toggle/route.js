@@ -36,6 +36,6 @@ export async function POST(request) {
   );
 
   revalidatePath("/");
-  revalidatePath("/admin/contenedores");
+  revalidatePath("/contenedores");
   return NextResponse.json({ id, lleno: Boolean(nextValue) });
 }

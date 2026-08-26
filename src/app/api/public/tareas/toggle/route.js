@@ -31,6 +31,6 @@ export async function POST(request) {
   db.prepare("update tareas set hecha = ? where id = ?").run(nextValue, id);
 
   revalidatePath("/");
-  revalidatePath("/admin/tareas");
+  revalidatePath("/tareas");
   return NextResponse.json({ id, hecha: Boolean(nextValue) });
 }

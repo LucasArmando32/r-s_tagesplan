@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookieName";
 
-const PROTECTED_PREFIXES = ["/tablero", "/admin"];
+const PROTECTED_PREFIXES = ["/tablero", "/tareas", "/contenedores"];
 
 function normalizeHost(host) {
   return (host || "").toLowerCase().trim();
@@ -19,7 +19,8 @@ export function proxy(request) {
 
   // Subdominio público (sin login): solo se sirve la página de solo lectura
   // y las dos rutas de toggle. Cualquier otra ruta (incluido /login, /tablero,
-  // /admin) se redirige a "/" para que el panel interno nunca quede expuesto ahí.
+  // /tareas, /contenedores) se redirige a "/" para que el panel interno
+  // nunca quede expuesto ahí.
   if (isPublicHost) {
     if (pathname === "/" || pathname.startsWith("/api/public/")) {
       return NextResponse.next();

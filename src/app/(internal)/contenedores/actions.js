@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/guard";
 
 function revalidateAll() {
-  revalidatePath("/admin/contenedores");
+  revalidatePath("/contenedores");
   revalidatePath("/");
 }
 

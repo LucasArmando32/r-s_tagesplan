@@ -9,10 +9,8 @@ import { signOutAction } from "@/lib/actions/auth";
 
 const LINKS = [
   { href: "/tablero", key: "nav.board" },
-  { href: "/admin/obras", key: "nav.sites" },
-  { href: "/admin/obreros", key: "nav.workers" },
-  { href: "/admin/contenedores", key: "nav.containers" },
-  { href: "/admin/tareas", key: "nav.tasks" },
+  { href: "/tareas", key: "nav.tasks" },
+  { href: "/contenedores", key: "nav.containers" },
 ];
 
 export default function NavBar() {
