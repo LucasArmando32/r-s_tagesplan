@@ -1,5 +1,6 @@
 import "server-only";
 import { DatabaseSync } from "node:sqlite";
+import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { SCHEMA_SQL } from "./schema.mjs";
@@ -9,6 +10,18 @@ const DB_PATH = process.env.DB_PATH || join(process.cwd(), "data", "tablero.db")
 function sleepSync(ms) {
   const view = new Int32Array(new SharedArrayBuffer(4));
   Atomics.wait(view, 0, 0, ms);
+}
+
+// Si todavía no hay ninguna obra cargada (primera vez que arranca la app
+// contra esta base), se precarga "Büro" como columna por defecto — así
+// siempre hay un lugar obvio para poner a alguien que no está en una obra.
+function seedDefaults(database) {
+  const { count } = database.prepare("select count(*) as count from obras").get();
+  if (count === 0) {
+    database
+      .prepare("insert into obras (id, nombre) values (?, ?)")
+      .run(randomUUID(), "Büro");
+  }
 }
 
 function openDatabase() {
@@ -26,6 +39,7 @@ function openDatabase() {
       database.exec("PRAGMA journal_mode = WAL;");
       database.exec("PRAGMA foreign_keys = ON;");
       database.exec(SCHEMA_SQL);
+      seedDefaults(database);
       return database;
     } catch (error) {
       const isLocked = String(error?.message || "").includes("database is locked");
