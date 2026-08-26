@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import Switch from "@/components/Switch";
 import {
   createContenedor,
   updateContenedor,
@@ -134,13 +135,13 @@ function ContenedorRow({ contenedor, obras, obrasById }) {
               setContenedorLleno(contenedor.id, !contenedor.lleno)
             )
           }
-          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-            contenedor.lleno
-              ? "bg-[var(--color-brand)] text-white"
-              : "bg-black/5 text-black/70"
-          } disabled:opacity-60`}
+          aria-pressed={contenedor.lleno}
+          className="flex items-center gap-2 rounded-full px-2 py-1 text-sm font-medium text-black/70 disabled:opacity-60"
         >
-          {contenedor.lleno ? t("containers.full") : t("containers.not_full")}
+          <span>
+            {contenedor.lleno ? t("containers.full") : t("containers.not_full")}
+          </span>
+          <Switch checked={contenedor.lleno} />
         </button>
         <button
           type="button"

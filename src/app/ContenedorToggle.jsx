@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import Switch from "@/components/Switch";
 
 export default function ContenedorToggle({ id, lleno: initialLleno }) {
   const { t } = useI18n();
@@ -33,13 +34,16 @@ export default function ContenedorToggle({ id, lleno: initialLleno }) {
       onClick={toggle}
       disabled={pending}
       aria-pressed={lleno}
-      className={`min-w-32 rounded-xl px-5 py-3 text-base font-semibold shadow-sm transition-colors disabled:opacity-60 ${
-        lleno
-          ? "bg-[var(--color-brand)] text-white"
-          : "bg-white text-black/70 ring-1 ring-black/10"
-      }`}
+      className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-black/10 transition-opacity disabled:opacity-60"
     >
-      {lleno ? t("containers.full") : t("containers.not_full")}
+      <span
+        className={`text-base font-semibold ${
+          lleno ? "text-[var(--color-brand)]" : "text-black/50"
+        }`}
+      >
+        {lleno ? t("containers.full") : t("containers.not_full")}
+      </span>
+      <Switch checked={lleno} size="lg" />
     </button>
   );
 }
