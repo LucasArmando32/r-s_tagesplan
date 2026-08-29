@@ -5,7 +5,7 @@ export async function getObras({ includeInactive = false, boardOnly = false } = 
   const supabase = await createClient();
   let query = supabase
     .from("obras")
-    .select("id, nombre, direccion, notas, activa, mostrar_en_tablero")
+    .select("id, nombre, direccion, notas, activa, mostrar_en_tablero, reisezeit_minutos")
     .order("nombre");
 
   if (!includeInactive) query = query.eq("activa", true);

@@ -243,13 +243,19 @@ function EditObraForm({ obra, onDone }) {
   const { t } = useI18n();
   const [nombre, setNombre] = useState(obra.nombre);
   const [direccion, setDireccion] = useState(obra.direccion || "");
+  const [reisezeit, setReisezeit] = useState(obra.reisezeit_minutos ?? "");
   const [pending, startTransition] = useTransition();
 
   function save() {
     const trimmed = nombre.trim();
     if (!trimmed) return;
     startTransition(async () => {
-      await actualizarObra(obra.id, trimmed, direccion.trim() || null);
+      await actualizarObra(
+        obra.id,
+        trimmed,
+        direccion.trim() || null,
+        reisezeit === "" ? null : Number(reisezeit)
+      );
       onDone();
     });
   }
@@ -274,6 +280,14 @@ function EditObraForm({ obra, onDone }) {
         value={direccion}
         onChange={(e) => setDireccion(e.target.value)}
         placeholder={t("common.address")}
+        className="mt-1.5 w-full rounded border border-black/15 px-2 py-1 text-xs focus:border-[var(--color-brand)] focus:outline-none"
+      />
+      <input
+        type="number"
+        min="0"
+        value={reisezeit}
+        onChange={(e) => setReisezeit(e.target.value)}
+        placeholder={t("common.travelTimeMinutes")}
         className="mt-1.5 w-full rounded border border-black/15 px-2 py-1 text-xs focus:border-[var(--color-brand)] focus:outline-none"
       />
       <div className="mt-2 flex items-center justify-between">
@@ -312,6 +326,7 @@ function AddSiteColumn() {
   const [adding, setAdding] = useState(false);
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [reisezeit, setReisezeit] = useState("");
   const [pending, startTransition] = useTransition();
 
   function submit() {
@@ -321,9 +336,15 @@ function AddSiteColumn() {
       return;
     }
     startTransition(async () => {
-      await crearObra(trimmed, direccion.trim() || null, null);
+      await crearObra(
+        trimmed,
+        direccion.trim() || null,
+        null,
+        reisezeit === "" ? null : Number(reisezeit)
+      );
       setNombre("");
       setDireccion("");
+      setReisezeit("");
       setAdding(false);
     });
   }
@@ -353,6 +374,14 @@ function AddSiteColumn() {
         value={direccion}
         onChange={(e) => setDireccion(e.target.value)}
         placeholder={t("common.address")}
+        className="mt-2 w-full rounded-lg border border-black/15 bg-white px-2 py-1.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
+      />
+      <input
+        type="number"
+        min="0"
+        value={reisezeit}
+        onChange={(e) => setReisezeit(e.target.value)}
+        placeholder={t("common.travelTimeMinutes")}
         className="mt-2 w-full rounded-lg border border-black/15 bg-white px-2 py-1.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
       />
       <div className="mt-2 flex gap-2">

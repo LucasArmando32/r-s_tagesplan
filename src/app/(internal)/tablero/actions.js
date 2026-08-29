@@ -19,11 +19,24 @@ export async function moverObrero(obreroId, obraId, libre) {
     .eq("id", obreroId);
 
   if (error) return { error: error.message };
+
+  // Records today's assignment for Stundenerfassung's Reisezeit lookup —
+  // only when actually sent to a real Baustelle (not Lager, not Frei).
+  if (obraId && !libre) {
+    const hoy = new Date().toISOString().slice(0, 10);
+    await supabase
+      .from("asignaciones_diarias")
+      .upsert(
+        { obrero_id: obreroId, obra_id: obraId, fecha: hoy },
+        { onConflict: "obrero_id,fecha" }
+      );
+  }
+
   revalidateAll();
   return { error: null };
 }
 
-export async function crearObra(nombre, direccion, notas) {
+export async function crearObra(nombre, direccion, notas, reisezeitMinutos) {
   await requireAdmin();
   if (!nombre?.trim()) return { error: "missing" };
   const supabase = await createClient();
@@ -32,6 +45,7 @@ export async function crearObra(nombre, direccion, notas) {
     nombre: nombre.trim(),
     direccion: direccion || null,
     notas: notas || null,
+    reisezeit_minutos: reisezeitMinutos || null,
   });
 
   if (error) return { error: error.message };
@@ -39,14 +53,18 @@ export async function crearObra(nombre, direccion, notas) {
   return { error: null };
 }
 
-export async function actualizarObra(id, nombre, direccion) {
+export async function actualizarObra(id, nombre, direccion, reisezeitMinutos) {
   await requireAdmin();
   if (!id || !nombre?.trim()) return { error: "missing" };
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("obras")
-    .update({ nombre: nombre.trim(), direccion: direccion || null })
+    .update({
+      nombre: nombre.trim(),
+      direccion: direccion || null,
+      reisezeit_minutos: reisezeitMinutos || null,
+    })
     .eq("id", id);
 
   if (error) return { error: error.message };
