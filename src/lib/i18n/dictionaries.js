@@ -88,7 +88,8 @@ export const dictionaries = {
       address: "Adresse",
       notes: "Hinweise",
       not_ready_title: "Tagesplan wird vorbereitet",
-      not_ready_message: "Bitte kurz warten, der Tagesplan ist gleich da.",
+      not_ready_message:
+        "Der Tagesplan ist jeden Tag spätestens um 12:00 Uhr bereit.",
     },
   },
   es: {
@@ -177,7 +178,8 @@ export const dictionaries = {
       address: "Dirección",
       notes: "Notas",
       not_ready_title: "Preparando el tablero de obras",
-      not_ready_message: "Esperá un momento, el tablero ya está por aparecer.",
+      not_ready_message:
+        "El tablero está listo todos los días a más tardar a las 12:00.",
     },
   },
 };
