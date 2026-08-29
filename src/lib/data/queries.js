@@ -20,7 +20,7 @@ export async function getObreros({ includeInactive = false } = {}) {
   const supabase = await createClient();
   let query = supabase
     .from("obreros")
-    .select("id, nombre, obra_actual_id, libre, tipo, activo")
+    .select("id, nombre, obra_actual_id, libre, motivo_libre, tipo, activo")
     .order("nombre");
 
   if (!includeInactive) query = query.eq("activo", true);

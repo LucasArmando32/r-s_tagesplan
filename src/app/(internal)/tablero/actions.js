@@ -9,27 +9,65 @@ function revalidateAll() {
   revalidatePath("/");
 }
 
-export async function moverObrero(obreroId, obraId, libre) {
+// Ferien/Krank son un motivo dentro de "Frei", no una Baustelle propia —
+// pero para que Stundenerfassung los siga reconociendo (lee
+// asignaciones_diarias y hace join con el nombre de la obra), acá se
+// resuelven a las obras homónimas ocultas (mostrar_en_tablero = false).
+const MOTIVO_A_OBRA_NOMBRE = { ferien: "Ferien", krank: "Krank" };
+
+async function resolverObraCredito(supabase, obraId, libre, motivo) {
+  if (!libre) return obraId || null; // Baustelle real -> ella misma; Lager -> null
+  const nombre = MOTIVO_A_OBRA_NOMBRE[motivo];
+  if (!nombre) return null; // "Frei" liso, sin motivo -> sin crédito
+  const { data } = await supabase
+    .from("obras")
+    .select("id")
+    .eq("nombre", nombre)
+    .maybeSingle();
+  return data?.id || null;
+}
+
+export async function moverObrero(obreroId, obraId, libre, motivo = "frei") {
   await requireAdmin();
   const supabase = await createClient();
+  const motivoFinal = libre ? motivo : "frei";
 
   const { error } = await supabase
     .from("obreros")
-    .update({ obra_actual_id: obraId, libre: Boolean(libre) })
+    .update({
+      obra_actual_id: obraId,
+      libre: Boolean(libre),
+      motivo_libre: motivoFinal,
+    })
     .eq("id", obreroId);
 
   if (error) return { error: error.message };
 
-  // Records today's assignment for Stundenerfassung's Reisezeit lookup —
-  // only when actually sent to a real Baustelle (not Lager, not Frei).
-  if (obraId && !libre) {
-    const hoy = new Date().toISOString().slice(0, 10);
+  // Registra (o borra) la asignación del día para Stundenerfassung — ver
+  // resolverObraCredito(). Se borra cuando el destino no da crédito (Lager
+  // o "Frei" liso), por si ese mismo día ya había una fila de antes (ej.
+  // volvió de una Baustelle o de Ferien más temprano).
+  const hoy = new Date().toISOString().slice(0, 10);
+  const obraCreditoId = await resolverObraCredito(
+    supabase,
+    obraId,
+    libre,
+    motivoFinal
+  );
+
+  if (obraCreditoId) {
     await supabase
       .from("asignaciones_diarias")
       .upsert(
-        { obrero_id: obreroId, obra_id: obraId, fecha: hoy },
+        { obrero_id: obreroId, obra_id: obraCreditoId, fecha: hoy },
         { onConflict: "obrero_id,fecha" }
       );
+  } else {
+    await supabase
+      .from("asignaciones_diarias")
+      .delete()
+      .eq("obrero_id", obreroId)
+      .eq("fecha", hoy);
   }
 
   revalidateAll();

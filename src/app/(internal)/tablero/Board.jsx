@@ -31,6 +31,7 @@ const DATE_REFRESH_MS = 60_000;
 
 const WAREHOUSE_ID = "almacen";
 const FREE_ID = "frei";
+const MOTIVOS_LIBRE = ["frei", "ferien", "krank"];
 
 const COLUMN_VARIANTS = {
   lager: "border-sky-200/80 bg-gradient-to-b from-sky-50 to-white",
@@ -62,6 +63,10 @@ function WorkerCard({ obrero }) {
     startTransition(() => borrarObrero(obrero.id));
   }
 
+  function setMotivo(motivo) {
+    startTransition(() => moverObrero(obrero.id, null, true, motivo));
+  }
+
   if (editing) {
     return (
       <div
@@ -82,6 +87,25 @@ function WorkerCard({ obrero }) {
           }}
           className="w-full rounded border border-black/15 px-2 py-1 text-sm focus:border-[var(--color-brand)] focus:outline-none"
         />
+        {obrero.libre && (
+          <div className="mt-1.5 flex gap-1">
+            {MOTIVOS_LIBRE.map((motivo) => (
+              <button
+                key={motivo}
+                type="button"
+                onClick={() => setMotivo(motivo)}
+                disabled={pending}
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  obrero.motivo_libre === motivo
+                    ? "bg-[var(--color-brand)] text-white"
+                    : "bg-black/5 text-black/60 hover:bg-black/10"
+                }`}
+              >
+                {t(`board.reason_${motivo}`)}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="mt-1.5 flex items-center justify-between">
           <div className="flex gap-2">
             <button
@@ -135,6 +159,11 @@ function WorkerCard({ obrero }) {
         <CarIcon className="h-3.5 w-5 shrink-0 text-slate-500" />
       )}
       {obrero.nombre}
+      {obrero.libre && obrero.motivo_libre !== "frei" && (
+        <span className="rounded-full bg-[var(--color-brand-light)] px-2 py-0.5 text-xs font-medium text-[var(--color-brand-dark)]">
+          {t(`board.reason_${obrero.motivo_libre}`)}
+        </span>
+      )}
     </div>
   );
 }
@@ -560,7 +589,12 @@ export default function Board({ obras, obreros }) {
     setObrerosState((prev) =>
       prev.map((o) =>
         o.id === obreroId
-          ? { ...o, obra_actual_id: targetObraId, libre: targetLibre }
+          ? {
+              ...o,
+              obra_actual_id: targetObraId,
+              libre: targetLibre,
+              motivo_libre: targetLibre ? "frei" : o.motivo_libre,
+            }
           : o
       )
     );
@@ -574,6 +608,7 @@ export default function Board({ obras, obreros }) {
                   ...o,
                   obra_actual_id: current.obra_actual_id,
                   libre: current.libre,
+                  motivo_libre: current.motivo_libre,
                 }
               : o
           )

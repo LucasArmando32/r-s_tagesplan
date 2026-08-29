@@ -47,6 +47,9 @@ export const dictionaries = {
       loading_screen: "Ladebildschirm für Arbeiter",
       loading_screen_active: "Aktiv – Arbeiter sehen den Ladebildschirm",
       loading_screen_inactive: "Inaktiv – Arbeiter sehen den Tagesplan",
+      reason_frei: "Frei",
+      reason_ferien: "Ferien",
+      reason_krank: "Krank",
     },
     containers: {
       title: "Mulden",
@@ -133,6 +136,9 @@ export const dictionaries = {
       loading_screen: "Pantalla de carga para obreros",
       loading_screen_active: "Activa – los obreros ven la pantalla de carga",
       loading_screen_inactive: "Inactiva – los obreros ven el tablero",
+      reason_frei: "Libre",
+      reason_ferien: "Vacaciones",
+      reason_krank: "Enfermo",
     },
     containers: {
       title: "Contenedores",
