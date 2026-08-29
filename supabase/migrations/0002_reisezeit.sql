@@ -19,6 +19,7 @@ create table if not exists public.asignaciones_diarias (
 
 alter table public.asignaciones_diarias enable row level security;
 
+drop policy if exists "asignaciones_diarias: solo admin" on public.asignaciones_diarias;
 create policy "asignaciones_diarias: solo admin" on public.asignaciones_diarias
   for all using (is_admin()) with check (is_admin());
 

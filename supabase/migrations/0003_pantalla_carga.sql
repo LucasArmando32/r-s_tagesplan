@@ -21,6 +21,7 @@ where not exists (select 1 from estado_pagina_publica);
 
 alter table estado_pagina_publica enable row level security;
 
+drop policy if exists "estado_pagina_publica: solo admin" on estado_pagina_publica;
 create policy "estado_pagina_publica: solo admin" on estado_pagina_publica
   for all using (is_admin()) with check (is_admin());
 
