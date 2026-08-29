@@ -110,7 +110,10 @@ export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
     tipo: tipo === "auto" ? "auto" : "obrero",
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[crearObrero]", error);
+    return { error: error.message };
+  }
   revalidateAll();
   return { error: null };
 }
