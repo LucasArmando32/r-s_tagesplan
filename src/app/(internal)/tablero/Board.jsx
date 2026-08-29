@@ -376,7 +376,7 @@ function AddSiteColumn() {
   );
 }
 
-function Column({ id, obra, obreros, fixedTitle, variant, addTarget }) {
+function Column({ id, obra, obreros, fixedTitle, variant, addTarget, showAddWorker }) {
   const { t } = useI18n();
   const { setNodeRef, isOver } = useDroppable({ id });
   const [editing, setEditing] = useState(false);
@@ -438,14 +438,16 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget }) {
         )}
       </div>
 
-      <div className="mt-2 flex flex-col">
-        <AddWorkerRow obraId={addTarget.obraId} libre={addTarget.libre} />
-        <AddWorkerRow
-          obraId={addTarget.obraId}
-          libre={addTarget.libre}
-          tipo="auto"
-        />
-      </div>
+      {showAddWorker && (
+        <div className="mt-2 flex flex-col">
+          <AddWorkerRow obraId={addTarget.obraId} libre={addTarget.libre} />
+          <AddWorkerRow
+            obraId={addTarget.obraId}
+            libre={addTarget.libre}
+            tipo="auto"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -579,6 +581,7 @@ export default function Board({ obras, obreros }) {
             variant="lager"
             addTarget={{ obraId: null, libre: false }}
             obreros={obrerosByColumn.get(WAREHOUSE_ID) || []}
+            showAddWorker
           />
           <Column
             id={FREE_ID}
