@@ -52,3 +52,15 @@ export async function getTareas() {
   if (error) throw error;
   return data;
 }
+
+export async function getPantallaCargaManual() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("estado_pagina_publica")
+    .select("pantalla_carga_manual")
+    .eq("id", true)
+    .single();
+
+  if (error) throw error;
+  return data.pantalla_carga_manual;
+}

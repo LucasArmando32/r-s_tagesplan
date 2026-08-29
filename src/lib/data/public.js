@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { debeForzarsePantallaCarga } from "@/lib/date";
 
 /**
  * Datos curados para la página pública de solo lectura.
@@ -85,21 +86,21 @@ export async function getPublicBoardData() {
 }
 
 /**
- * Si nadie fue asignado hoy a una Baustelle real (no Lager, no Frei) —
- * es decir, la jefa todavía no armó el plan del día — asignaciones_diarias
- * no tiene ninguna fila con fecha de hoy. Se usa junto con isBeforeReadyTime
- * para no mostrar un tablero vacío/de ayer si se pasó la hora "lista" sin
- * que la jefa haya tocado nada.
+ * Activa (= mostrar pantalla de carga en vez del tablero) si la jefa la
+ * prendió a mano, o si no la tocó desde el corte automático de las 10:00
+ * de hoy (hora suiza) — ver debeForzarsePantallaCarga() en src/lib/date.js.
  */
-export async function haySinAsignarHoy(hoy) {
+export async function isPantallaCargaActiva() {
   const supabase = createAdminClient();
-  const { count, error } = await supabase
-    .from("asignaciones_diarias")
-    .select("id", { count: "exact", head: true })
-    .eq("fecha", hoy);
+  const { data, error } = await supabase
+    .from("estado_pagina_publica")
+    .select("pantalla_carga_manual, pantalla_carga_actualizada_en")
+    .eq("id", true)
+    .single();
 
   if (error) throw error;
-  return count === 0;
+  if (data.pantalla_carga_manual) return true;
+  return debeForzarsePantallaCarga(data.pantalla_carga_actualizada_en);
 }
 
 export async function registrarVisita() {

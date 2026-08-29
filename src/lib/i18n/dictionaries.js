@@ -44,6 +44,9 @@ export const dictionaries = {
       new_worker: "Arbeiter",
       new_car: "Auto",
       notes_placeholder: "z. B. Zugang über den Hinterhof, Kunde ist den ganzen Tag vor Ort…",
+      loading_screen: "Ladebildschirm für Arbeiter",
+      loading_screen_active: "Aktiv – Arbeiter sehen den Ladebildschirm",
+      loading_screen_inactive: "Inaktiv – Arbeiter sehen den Tagesplan",
     },
     containers: {
       title: "Mulden",
@@ -82,8 +85,7 @@ export const dictionaries = {
       address: "Adresse",
       notes: "Hinweise",
       not_ready_title: "Tagesplan wird vorbereitet",
-      not_ready_message:
-        "Der Tagesplan für heute ist spätestens ab {time} Uhr bereit.",
+      not_ready_message: "Bitte kurz warten, der Tagesplan ist gleich da.",
     },
   },
   es: {
@@ -128,6 +130,9 @@ export const dictionaries = {
       new_worker: "Obrero",
       new_car: "Auto",
       notes_placeholder: "ej. cuidado, acceso por el patio trasero, cliente presente todo el día…",
+      loading_screen: "Pantalla de carga para obreros",
+      loading_screen_active: "Activa – los obreros ven la pantalla de carga",
+      loading_screen_inactive: "Inactiva – los obreros ven el tablero",
     },
     containers: {
       title: "Contenedores",
@@ -166,7 +171,7 @@ export const dictionaries = {
       address: "Dirección",
       notes: "Notas",
       not_ready_title: "Preparando el tablero de obras",
-      not_ready_message: "El tablero de hoy está listo a más tardar a las {time}.",
+      not_ready_message: "Esperá un momento, el tablero ya está por aparecer.",
     },
   },
 };

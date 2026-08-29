@@ -1,17 +1,11 @@
 import {
   getPublicBoardData,
   registrarVisita,
-  haySinAsignarHoy,
+  isPantallaCargaActiva,
 } from "@/lib/data/public";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import {
-  formatDateDMY,
-  formatTodayLong,
-  formatReadyTime,
-  isBeforeReadyTime,
-  todayISO,
-} from "@/lib/date";
+import { formatDateDMY, formatTodayLong } from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import CarIcon from "@/components/CarIcon";
@@ -52,10 +46,7 @@ export default async function PublicBoardPage() {
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
   const today = formatTodayLong(locale);
 
-  const notReady =
-    isBeforeReadyTime() || (await haySinAsignarHoy(todayISO()));
-
-  if (notReady) {
+  if (await isPantallaCargaActiva()) {
     return (
       <div className="min-h-screen">
         <AutoRefresh />
@@ -65,12 +56,7 @@ export default async function PublicBoardPage() {
           <h2 className="text-xl font-semibold text-[var(--color-brand)]">
             {t("public.not_ready_title")}
           </h2>
-          <p className="text-black/60">
-            {t("public.not_ready_message").replace(
-              "{time}",
-              formatReadyTime()
-            )}
-          </p>
+          <p className="text-black/60">{t("public.not_ready_message")}</p>
         </main>
       </div>
     );

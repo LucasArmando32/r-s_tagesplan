@@ -268,6 +268,23 @@ export async function setTareaHecha(id, hecha) {
   return { error: null };
 }
 
+export async function setPantallaCargaManual(activa) {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("estado_pagina_publica")
+    .update({
+      pantalla_carga_manual: Boolean(activa),
+      pantalla_carga_actualizada_en: new Date().toISOString(),
+    })
+    .eq("id", true);
+
+  if (error) return { error: error.message };
+  revalidateAll();
+  return { error: null };
+}
+
 export async function deleteTarea(id) {
   await requireAdmin();
   const supabase = await createClient();
