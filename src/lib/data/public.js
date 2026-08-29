@@ -84,6 +84,24 @@ export async function getPublicBoardData() {
   };
 }
 
+/**
+ * Si nadie fue asignado hoy a una Baustelle real (no Lager, no Frei) —
+ * es decir, la jefa todavía no armó el plan del día — asignaciones_diarias
+ * no tiene ninguna fila con fecha de hoy. Se usa junto con isBeforeReadyTime
+ * para no mostrar un tablero vacío/de ayer si se pasó la hora "lista" sin
+ * que la jefa haya tocado nada.
+ */
+export async function haySinAsignarHoy(hoy) {
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("asignaciones_diarias")
+    .select("id", { count: "exact", head: true })
+    .eq("fecha", hoy);
+
+  if (error) throw error;
+  return count === 0;
+}
+
 export async function registrarVisita() {
   try {
     const supabase = createAdminClient();

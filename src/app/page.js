@@ -1,4 +1,8 @@
-import { getPublicBoardData, registrarVisita } from "@/lib/data/public";
+import {
+  getPublicBoardData,
+  registrarVisita,
+  haySinAsignarHoy,
+} from "@/lib/data/public";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import {
@@ -6,6 +10,7 @@ import {
   formatTodayLong,
   formatReadyTime,
   isBeforeReadyTime,
+  todayISO,
 } from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -47,7 +52,10 @@ export default async function PublicBoardPage() {
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
   const today = formatTodayLong(locale);
 
-  if (isBeforeReadyTime()) {
+  const notReady =
+    isBeforeReadyTime() || (await haySinAsignarHoy(todayISO()));
+
+  if (notReady) {
     return (
       <div className="min-h-screen">
         <AutoRefresh />
