@@ -54,7 +54,7 @@ export default async function PublicBoardPage() {
         <AutoRefresh />
         <PublicHeader t={t} today={today} />
         <main className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-20 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-brand-light)] border-t-[var(--color-brand)]" />
+          <Logo size="lg" showLabel={false} />
           <h2 className="text-xl font-semibold text-[var(--color-brand)]">
             {t("public.not_ready_title")}
           </h2>
