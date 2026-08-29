@@ -89,18 +89,27 @@ export async function getPublicBoardData() {
  * Activa (= mostrar pantalla de carga en vez del tablero) si la jefa la
  * prendió a mano, o si no la tocó desde el corte automático de las 10:00
  * de hoy (hora suiza) — ver debeForzarsePantallaCarga() en src/lib/date.js.
+ *
+ * Ante un error transitorio de Supabase, por las dudas se muestra la
+ * pantalla de carga en vez de tirar abajo toda la página pública — con el
+ * autorefresh de 60s se autocorrige solo en cuanto el error pasa.
  */
 export async function isPantallaCargaActiva() {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("estado_pagina_publica")
-    .select("pantalla_carga_manual, pantalla_carga_actualizada_en")
-    .eq("id", true)
-    .single();
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("estado_pagina_publica")
+      .select("pantalla_carga_manual, pantalla_carga_actualizada_en")
+      .eq("id", true)
+      .single();
 
-  if (error) throw error;
-  if (data.pantalla_carga_manual) return true;
-  return debeForzarsePantallaCarga(data.pantalla_carga_actualizada_en);
+    if (error) throw error;
+    if (data.pantalla_carga_manual) return true;
+    return debeForzarsePantallaCarga(data.pantalla_carga_actualizada_en);
+  } catch (error) {
+    console.error("[isPantallaCargaActiva]", error);
+    return true;
+  }
 }
 
 export async function registrarVisita() {
