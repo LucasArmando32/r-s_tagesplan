@@ -54,6 +54,16 @@ export function debeForzarsePantallaCarga(actualizadaEnISO) {
   return actualizadaValue < corteHoyValue;
 }
 
+// Fecha de hoy en hora suiza (no la del servidor/contenedor), como
+// "YYYY-MM-DD" — usado para saber si ya pasó un día nuevo (ver
+// resetearKeineArbeitSiCorresponde en src/lib/data/dailyReset.js).
+export function zurichDateISO(date = new Date()) {
+  const p = zurichParts(date);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(
+    p.day
+  ).padStart(2, "0")}`;
+}
+
 export function todayISO() {
   const now = new Date();
   const offsetMs = now.getTimezoneOffset() * 60000;

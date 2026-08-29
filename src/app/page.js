@@ -3,6 +3,7 @@ import {
   registrarVisita,
   isPantallaCargaActiva,
 } from "@/lib/data/public";
+import { resetearKeineArbeitSiCorresponde } from "@/lib/data/dailyReset";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { formatDateDMY, formatTodayLong } from "@/lib/date";
@@ -40,6 +41,7 @@ function PublicHeader({ t, today }) {
 export default async function PublicBoardPage() {
   const locale = await getLocale();
   await registrarVisita();
+  await resetearKeineArbeitSiCorresponde();
   const t = (path) =>
     path
       .split(".")
