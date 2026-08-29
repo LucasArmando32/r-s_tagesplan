@@ -37,12 +37,12 @@ yarn-error.log*
 # vercel
 .vercel
 
-# base de datos SQLite local (datos de desarrollo, no del repo)
-/data/
-*.db
-*.db-wal
-*.db-shm
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archivo SQLite viejo (copiado localmente para scripts/migrate-sqlite-to-supabase.mjs)
+*.db
+*.db-wal
+*.db-shm

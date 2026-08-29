@@ -1,22 +1,29 @@
-# RS Tagesplan — Tablero de obras (Fase 1)
+# RS Tagesplan — Tablero de obras
 
-Next.js + SQLite embebido (sin servicios externos). Ver
-`spec-tablero-obras_2.md` para la especificación completa.
+Next.js + Supabase self-hosted (Postgres + Auth + RLS). Ver
+`spec-tablero-obras_1.md` para la especificación original y este README para
+el estado actual (vehículos, columna "Frei", ubicaciones que no aparecen
+como columna, etc.).
 
-## Infraestructura: SQLite, sin Supabase
+## Infraestructura: Supabase self-hosted
 
-Esta app **no** usa Supabase ni ningún otro servicio de base de datos aparte:
-guarda todo en un único archivo SQLite (`node:sqlite`, nativo de Node — sin
-dependencias que compilar), leído/escrito directamente por el backend de
-Next.js. Es independiente de la app de horas (`r-s_stundenerfassung`), cada
-una con su propio proyecto y su propio contenedor Docker.
+La app usa una instancia de Supabase self-hosted como único backend: Postgres
+para los datos, Supabase Auth para el login de la jefa, y Row Level Security
+para que solo la cuenta admin pueda modificar datos. Puede vivir en la misma
+instancia de Supabase que la app de horas (`r-s_stundenerfassung`), cada una
+en su propio schema Postgres — configurable vía `SUPABASE_DB_SCHEMA` (por
+defecto `public`).
 
-La autenticación también es propia (no hay proveedor externo): la única
-cuenta (la jefa) vive en la tabla `usuarios` con `password_hash` (scrypt), y
-la sesión se guarda en la tabla `sesiones` + una cookie `httpOnly`. Sin RLS
-(SQLite no la tiene) — el control de acceso está en el código del backend:
-cada Server Action que modifica datos llama a `requireAdmin()`
-(`src/lib/auth/guard.js`) antes de tocar la base.
+El control de acceso combina dos capas: RLS en Postgres (solo filas de
+`usuarios` cuyo `rol = 'admin'` y `activo = true` pueden escribir en
+obras/obreros/contenedores/tareas, vía la función `is_admin()`), y
+`requireAdmin()` (`src/lib/auth/guard.js`) en cada Server Action como
+defensa adicional del lado de Next.js.
+
+La página pública y las dos rutas anónimas de toggle (contenedor lleno,
+tarea hecha) usan la clave `service_role` desde el servidor
+(`src/lib/supabase/admin.js`), que ignora RLS — el navegador nunca habla
+directamente con Supabase.
 
 ## Acceso
 
@@ -32,18 +39,23 @@ Un solo dominio para todo, sin subdominio aparte para la página pública:
 
 ## Configuración
 
-1. Copiar `.env.local.example` a `.env.local`. Por defecto no hace falta
-   tocar nada para desarrollo local (`DB_PATH` apunta a `./data/tablero.db`,
-   se crea solo).
-2. Crear la cuenta de la jefa:
+1. Si todavía no existe, desplegar una instancia de Supabase self-hosted
+   (ej. plantilla de Dokploy) y anotar la URL, la clave `anon` y la clave
+   `service_role`.
+2. Ejecutar una sola vez `supabase/schema.sql` en el SQL Editor de esa
+   instancia (crea las tablas, RLS, la función `is_admin()` y los datos por
+   defecto "Büro"/"Hinterkappelen").
+3. Copiar `.env.local.example` a `.env.local` y completar las tres
+   variables de Supabase.
+4. Crear la cuenta de la jefa (crea el usuario en Supabase Auth y su fila en
+   `usuarios` en un solo paso):
 
    ```bash
    npm run create-admin -- --email=jefa@rs-asbestsanierung.ch \
      --nombre="Nombre Apellido" --password="una-contraseña-segura"
    ```
 
-   El script crea el archivo SQLite y la tabla `usuarios` si todavía no
-   existen. Volver a ejecutarlo con el mismo email actualiza la contraseña.
+   Volver a ejecutarlo con el mismo email actualiza la contraseña.
 
 ## Desarrollo
 
@@ -58,17 +70,14 @@ Ver la sección "Acceso" arriba para las rutas.
 
 - App Next.js en su propio contenedor Docker (`Dockerfile`, modo
   `standalone`), separada de la app de horas.
-- El archivo SQLite necesita un **volumen persistente montado en
-  `/app/data`** dentro del contenedor (el `Dockerfile` ya crea ese
-  directorio y fija `DB_PATH=/app/data/tablero.db`) — sin esto, los datos se
-  pierden en cada redeploy.
-- Tras el primer deploy, crear la cuenta de la jefa una vez desde la
-  terminal del contenedor en Dokploy:
-
-  ```bash
-  node scripts/create-admin.mjs --email=... --nombre="..." --password=...
-  ```
-
-- No hace falta backup automático adicional: los datos de esta app (obras,
-  obreros, contenedores, tareas del día) no son críticos ni difíciles de
-  reconstruir si se perdieran — el volumen persistente alcanza.
+- Las variables `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  deben configurarse como **Build Args** en Dokploy (además de variables de
+  entorno runtime si aplica) porque Next.js las inlina en el bundle del
+  cliente durante `npm run build`.
+- `SUPABASE_SERVICE_ROLE_KEY` y `SUPABASE_DB_SCHEMA` solo hacen falta como
+  variables de entorno runtime (nunca deben llegar al bundle del cliente).
+- No hace falta ningún volumen persistente: todos los datos viven en
+  Supabase, no en el contenedor.
+- `npm run create-admin` se ejecuta localmente (o desde cualquier máquina
+  con acceso a la instancia de Supabase), no dentro del contenedor — solo
+  habla con la API HTTP de Supabase.

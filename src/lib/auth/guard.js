@@ -1,19 +1,31 @@
 import "server-only";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE_NAME, getSessionUser } from "./session";
+import { createClient } from "@/lib/supabase/server";
 
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  return getSessionUser(token);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: perfil } = await supabase
+    .from("usuarios")
+    .select("id, email, nombre, rol, activo")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!perfil || !perfil.activo) return null;
+
+  return perfil;
 }
 
 /**
  * Verifica que haya una sesión de jefa válida. Usarla al inicio de:
- *  - src/app/(internal)/layout.js (protege /tablero y /admin/* al renderizar), y
- *  - cada Server Action que modifique datos (SQLite no tiene RLS — el
- *    control de acceso vive en el código del backend, ver spec sección 7).
+ *  - src/app/(internal)/layout.js (protege /tablero al renderizar), y
+ *  - cada Server Action que modifique datos (defensa en profundidad —
+ *    la RLS de Supabase, vía is_admin(), es la que realmente protege los
+ *    datos, pero este chequeo evita ejecutar la lógica innecesariamente).
  */
 export async function requireAdmin() {
   const user = await getCurrentUser();

@@ -4,7 +4,6 @@ node_modules
 *.md
 .env*
 !.env.local.example
-data/
 *.db
 *.db-wal
 *.db-shm

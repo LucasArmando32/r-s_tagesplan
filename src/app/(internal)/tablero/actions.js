@@ -1,8 +1,7 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
+import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/guard";
 
 function revalidateAll() {
@@ -12,11 +11,14 @@ function revalidateAll() {
 
 export async function moverObrero(obreroId, obraId, libre) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare(
-    "update obreros set obra_actual_id = ?, libre = ? where id = ?"
-  ).run(obraId, libre ? 1 : 0, obreroId);
+  const { error } = await supabase
+    .from("obreros")
+    .update({ obra_actual_id: obraId, libre: Boolean(libre) })
+    .eq("id", obreroId);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -24,11 +26,15 @@ export async function moverObrero(obreroId, obraId, libre) {
 export async function crearObra(nombre, direccion, notas) {
   await requireAdmin();
   if (!nombre?.trim()) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare(
-    "insert into obras (id, nombre, direccion, notas) values (?, ?, ?, ?)"
-  ).run(randomUUID(), nombre.trim(), direccion || null, notas || null);
+  const { error } = await supabase.from("obras").insert({
+    nombre: nombre.trim(),
+    direccion: direccion || null,
+    notas: notas || null,
+  });
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -36,13 +42,14 @@ export async function crearObra(nombre, direccion, notas) {
 export async function actualizarObra(id, nombre, direccion) {
   await requireAdmin();
   if (!id || !nombre?.trim()) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare("update obras set nombre = ?, direccion = ? where id = ?").run(
-    nombre.trim(),
-    direccion || null,
-    id
-  );
+  const { error } = await supabase
+    .from("obras")
+    .update({ nombre: nombre.trim(), direccion: direccion || null })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -50,21 +57,25 @@ export async function actualizarObra(id, nombre, direccion) {
 export async function actualizarNotas(id, notas) {
   await requireAdmin();
   if (!id) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare("update obras set notas = ? where id = ?").run(
-    notas || null,
-    id
-  );
+  const { error } = await supabase
+    .from("obras")
+    .update({ notas: notas || null })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function borrarObra(id) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare("delete from obras where id = ?").run(id);
+  const { error } = await supabase.from("obras").delete().eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -72,17 +83,16 @@ export async function borrarObra(id) {
 export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
   await requireAdmin();
   if (!nombre?.trim()) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare(
-    "insert into obreros (id, nombre, obra_actual_id, libre, tipo) values (?, ?, ?, ?, ?)"
-  ).run(
-    randomUUID(),
-    nombre.trim(),
-    obraId || null,
-    libre ? 1 : 0,
-    tipo === "auto" ? "auto" : "obrero"
-  );
+  const { error } = await supabase.from("obreros").insert({
+    nombre: nombre.trim(),
+    obra_actual_id: obraId || null,
+    libre: Boolean(libre),
+    tipo: tipo === "auto" ? "auto" : "obrero",
+  });
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -90,21 +100,25 @@ export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
 export async function renombrarObrero(id, nombre) {
   await requireAdmin();
   if (!id || !nombre?.trim()) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare("update obreros set nombre = ? where id = ?").run(
-    nombre.trim(),
-    id
-  );
+  const { error } = await supabase
+    .from("obreros")
+    .update({ nombre: nombre.trim() })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function borrarObrero(id) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare("delete from obreros where id = ?").run(id);
+  const { error } = await supabase.from("obreros").delete().eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -119,11 +133,14 @@ export async function createContenedor(formData) {
 
   const nombre = formData.get("nombre")?.toString().trim();
   if (!nombre) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare(
-    "insert into contenedores (id, nombre, ubicacion_id) values (?, ?, ?)"
-  ).run(randomUUID(), nombre, parseUbicacionId(formData));
+  const { error } = await supabase.from("contenedores").insert({
+    nombre,
+    ubicacion_id: parseUbicacionId(formData),
+  });
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -133,32 +150,39 @@ export async function updateContenedor(id, formData) {
 
   const nombre = formData.get("nombre")?.toString().trim();
   if (!id || !nombre) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare(
-    "update contenedores set nombre = ?, ubicacion_id = ? where id = ?"
-  ).run(nombre, parseUbicacionId(formData), id);
+  const { error } = await supabase
+    .from("contenedores")
+    .update({ nombre, ubicacion_id: parseUbicacionId(formData) })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function setContenedorLleno(id, lleno) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare("update contenedores set lleno = ? where id = ?").run(
-    lleno ? 1 : 0,
-    id
-  );
+  const { error } = await supabase
+    .from("contenedores")
+    .update({ lleno: Boolean(lleno) })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function deleteContenedor(id) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare("delete from contenedores where id = ?").run(id);
+  const { error } = await supabase.from("contenedores").delete().eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -174,11 +198,15 @@ export async function createTarea(formData) {
   const descripcion = formData.get("descripcion")?.toString().trim();
   const fecha = formData.get("fecha")?.toString();
   if (!descripcion || !fecha) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare(
-    "insert into tareas (id, descripcion, fecha, obrero_asignado_id) values (?, ?, ?, ?)"
-  ).run(randomUUID(), descripcion, fecha, parseObreroId(formData));
+  const { error } = await supabase.from("tareas").insert({
+    descripcion,
+    fecha,
+    obrero_asignado_id: parseObreroId(formData),
+  });
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
@@ -189,32 +217,43 @@ export async function updateTarea(id, formData) {
   const descripcion = formData.get("descripcion")?.toString().trim();
   const fecha = formData.get("fecha")?.toString();
   if (!id || !descripcion || !fecha) return { error: "missing" };
+  const supabase = await createClient();
 
-  db.prepare(
-    "update tareas set descripcion = ?, fecha = ?, obrero_asignado_id = ? where id = ?"
-  ).run(descripcion, fecha, parseObreroId(formData), id);
+  const { error } = await supabase
+    .from("tareas")
+    .update({
+      descripcion,
+      fecha,
+      obrero_asignado_id: parseObreroId(formData),
+    })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function setTareaHecha(id, hecha) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare("update tareas set hecha = ? where id = ?").run(
-    hecha ? 1 : 0,
-    id
-  );
+  const { error } = await supabase
+    .from("tareas")
+    .update({ hecha: Boolean(hecha) })
+    .eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }
 
 export async function deleteTarea(id) {
   await requireAdmin();
+  const supabase = await createClient();
 
-  db.prepare("delete from tareas where id = ?").run(id);
+  const { error } = await supabase.from("tareas").delete().eq("id", id);
 
+  if (error) return { error: error.message };
   revalidateAll();
   return { error: null };
 }

@@ -4,16 +4,19 @@ import BoardClient from "./BoardClient";
 import ContenedoresManager from "./ContenedoresManager";
 import TareasManager from "./TareasManager";
 
-export default function TableroPage() {
-  const obrasTablero = getObras({ boardOnly: true });
+export default async function TableroPage() {
   // Los contenedores pueden estar en cualquier obra, incluidas las que no
   // aparecen como columna en el tablero (ej. "Hinterkappelen": es solo un
   // punto de acopio, no una obra con gente) — por eso el selector de
   // ubicación necesita la lista completa, no la filtrada para el tablero.
-  const obrasTodas = getObras();
-  const obreros = getObreros();
-  const contenedores = getContenedores();
-  const tareas = getTareas();
+  const [obrasTablero, obrasTodas, obreros, contenedores, tareas] =
+    await Promise.all([
+      getObras({ boardOnly: true }),
+      getObras(),
+      getObreros(),
+      getContenedores(),
+      getTareas(),
+    ]);
 
   return (
     <div className="space-y-10">

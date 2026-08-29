@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Crea o actualiza la cuenta de la jefa (admin) directamente en el archivo
-// SQLite de la app. Pensado para ejecutarse una vez, vía la terminal del
-// contenedor en Dokploy (o localmente en desarrollo).
+// Crea o actualiza la cuenta de la jefa (admin) en Supabase: crea el usuario
+// en auth.users (o actualiza su contraseña si ya existe) y asegura su fila
+// correspondiente en la tabla usuarios con rol 'admin'.
 //
 // Uso:
 //   node scripts/create-admin.mjs --email=jefa@rs-asbestsanierung.ch \
@@ -10,13 +10,11 @@
 // También acepta las variables de entorno ADMIN_EMAIL / ADMIN_NOMBRE /
 // ADMIN_PASSWORD en vez de flags.
 //
-// Nota: este script es standalone a propósito (no importa nada de src/) para
-// no depender del bundling de Next.js — solo usa módulos nativos de Node.
+// Requiere las variables de entorno NEXT_PUBLIC_SUPABASE_URL y
+// SUPABASE_SERVICE_ROLE_KEY (y opcionalmente SUPABASE_DB_SCHEMA) apuntando
+// a la instancia de Supabase donde ya se ejecutó supabase/schema.sql.
 
-import { DatabaseSync } from "node:sqlite";
-import { scryptSync, randomBytes, randomUUID } from "node:crypto";
-import { mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { createClient } from "@supabase/supabase-js";
 
 function readArg(name, envName) {
   const prefix = `--${name}=`;
@@ -37,40 +35,79 @@ if (!email || !nombre || !password) {
   process.exit(1);
 }
 
-const dbPath = process.env.DB_PATH || join(process.cwd(), "data", "tablero.db");
-mkdirSync(dirname(dbPath), { recursive: true });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const db = new DatabaseSync(dbPath);
-db.exec("PRAGMA foreign_keys = ON;");
-db.exec(`
-  create table if not exists usuarios (
-    id text primary key,
-    email text not null unique,
-    nombre text not null,
-    rol text not null default 'admin',
-    activo integer not null default 1,
-    password_hash text not null
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error(
+    "Faltan NEXT_PUBLIC_SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY en el entorno."
   );
-`);
-
-const salt = randomBytes(16).toString("hex");
-const hash = scryptSync(password, salt, 64).toString("hex");
-const passwordHash = `${salt}:${hash}`;
-
-const existing = db
-  .prepare("select id from usuarios where email = ?")
-  .get(email);
-
-if (existing) {
-  db.prepare(
-    "update usuarios set nombre = ?, password_hash = ?, activo = 1 where id = ?"
-  ).run(nombre, passwordHash, existing.id);
-  console.log(`Contraseña actualizada para ${email}.`);
-} else {
-  db.prepare(
-    "insert into usuarios (id, email, nombre, rol, activo, password_hash) values (?, ?, ?, 'admin', 1, ?)"
-  ).run(randomUUID(), email, nombre, passwordHash);
-  console.log(`Cuenta admin creada para ${email}.`);
+  process.exit(1);
 }
 
-db.close();
+const dbSchema = process.env.SUPABASE_DB_SCHEMA || "public";
+
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  db: { schema: dbSchema },
+  auth: { autoRefreshToken: false, persistSession: false },
+});
+
+async function findAuthUserByEmail(targetEmail) {
+  let page = 1;
+  const perPage = 200;
+  for (;;) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+    if (error) throw error;
+    const found = data.users.find(
+      (u) => u.email?.toLowerCase() === targetEmail
+    );
+    if (found) return found;
+    if (data.users.length < perPage) return null;
+    page += 1;
+  }
+}
+
+async function main() {
+  let authUser = await findAuthUserByEmail(email);
+
+  if (authUser) {
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      authUser.id,
+      { password }
+    );
+    if (error) throw error;
+    authUser = data.user;
+    console.log(`Contraseña actualizada para ${email}.`);
+  } else {
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+    if (error) throw error;
+    authUser = data.user;
+    console.log(`Usuario de autenticación creado para ${email}.`);
+  }
+
+  const { error: upsertError } = await supabase.from("usuarios").upsert(
+    {
+      id: authUser.id,
+      email,
+      nombre,
+      rol: "admin",
+      activo: true,
+    },
+    { onConflict: "id" }
+  );
+  if (upsertError) throw upsertError;
+
+  console.log(`Cuenta admin lista para ${email}.`);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

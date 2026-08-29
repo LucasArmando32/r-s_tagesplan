@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default async function PublicBoardPage() {
   const locale = await getLocale();
-  registrarVisita();
-  const { obras, contenedores, tareas } = getPublicBoardData();
+  await registrarVisita();
+  const { obras, contenedores, tareas } = await getPublicBoardData();
   const t = (path) =>
     path
       .split(".")

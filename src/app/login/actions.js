@@ -1,14 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
-import { verifyPassword } from "@/lib/auth/password";
-import { createSession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookieName";
+import { createClient } from "@/lib/supabase/server";
 
 export async function signInAction(prevState, formData) {
-  const email = formData.get("email")?.toString().trim().toLowerCase();
+  const email = formData.get("email")?.toString().trim();
   const password = formData.get("password")?.toString();
   const next = formData.get("next")?.toString() || "/tablero";
 
@@ -16,23 +12,15 @@ export async function signInAction(prevState, formData) {
     return { error: "missing" };
   }
 
-  const usuario = db
-    .prepare("select * from usuarios where email = ? and activo = 1")
-    .get(email);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  if (!usuario || !verifyPassword(password, usuario.password_hash)) {
+  if (error) {
     return { error: "invalid" };
   }
-
-  const { token, expiraEn } = createSession(usuario.id);
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(expiraEn),
-  });
 
   redirect(next);
 }

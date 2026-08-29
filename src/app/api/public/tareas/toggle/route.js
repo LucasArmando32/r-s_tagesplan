@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isUuid } from "@/lib/validate";
 
 /**
@@ -21,16 +21,32 @@ export async function POST(request) {
     return NextResponse.json({ error: "invalid_id" }, { status: 400 });
   }
 
-  const existing = db.prepare("select id, hecha from tareas where id = ?").get(id);
+  const supabase = createAdminClient();
 
+  const { data: existing, error: fetchError } = await supabase
+    .from("tareas")
+    .select("id, hecha")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+  }
   if (!existing) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const nextValue = existing.hecha ? 0 : 1;
-  db.prepare("update tareas set hecha = ? where id = ?").run(nextValue, id);
+  const nextValue = !existing.hecha;
+  const { error: updateError } = await supabase
+    .from("tareas")
+    .update({ hecha: nextValue })
+    .eq("id", id);
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
 
   revalidatePath("/");
   revalidatePath("/tablero");
-  return NextResponse.json({ id, hecha: Boolean(nextValue) });
+  return NextResponse.json({ id, hecha: nextValue });
 }
