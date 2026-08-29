@@ -1,7 +1,12 @@
 import { getPublicBoardData, registrarVisita } from "@/lib/data/public";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { formatDateDMY, formatTodayLong } from "@/lib/date";
+import {
+  formatDateDMY,
+  formatTodayLong,
+  formatReadyTime,
+  isBeforeReadyTime,
+} from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import CarIcon from "@/components/CarIcon";
@@ -11,36 +16,64 @@ import AutoRefresh from "./AutoRefresh";
 
 export const dynamic = "force-dynamic";
 
+function PublicHeader({ t, today }) {
+  return (
+    <header className="bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-darker)] shadow-md">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <Logo inverted />
+        <LanguageSwitcher />
+      </div>
+      <div className="mx-auto max-w-3xl px-4 pb-5">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            {t("public.title")}
+          </h1>
+          <span className="text-base font-medium text-white/70 sm:text-lg">
+            {today}
+          </span>
+        </div>
+        <p className="text-white/80">{t("public.subtitle")}</p>
+      </div>
+    </header>
+  );
+}
+
 export default async function PublicBoardPage() {
   const locale = await getLocale();
   await registrarVisita();
-  const { obras, contenedores, tareas } = await getPublicBoardData();
   const t = (path) =>
     path
       .split(".")
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
   const today = formatTodayLong(locale);
 
+  if (isBeforeReadyTime()) {
+    return (
+      <div className="min-h-screen">
+        <AutoRefresh />
+        <PublicHeader t={t} today={today} />
+        <main className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-20 text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-brand-light)] border-t-[var(--color-brand)]" />
+          <h2 className="text-xl font-semibold text-[var(--color-brand)]">
+            {t("public.not_ready_title")}
+          </h2>
+          <p className="text-black/60">
+            {t("public.not_ready_message").replace(
+              "{time}",
+              formatReadyTime()
+            )}
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  const { obras, contenedores, tareas } = await getPublicBoardData();
+
   return (
     <div className="min-h-screen">
       <AutoRefresh />
-      <header className="bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-darker)] shadow-md">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <Logo inverted />
-          <LanguageSwitcher />
-        </div>
-        <div className="mx-auto max-w-3xl px-4 pb-5">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-              {t("public.title")}
-            </h1>
-            <span className="text-base font-medium text-white/70 sm:text-lg">
-              {today}
-            </span>
-          </div>
-          <p className="text-white/80">{t("public.subtitle")}</p>
-        </div>
-      </header>
+      <PublicHeader t={t} today={today} />
 
       <main className="mx-auto max-w-3xl px-4 py-6">
         <section className="mb-10">

@@ -81,6 +81,9 @@ export const dictionaries = {
       no_tasks: "Aktuell keine Aufgaben für heute.",
       address: "Adresse",
       notes: "Hinweise",
+      not_ready_title: "Tagesplan wird vorbereitet",
+      not_ready_message:
+        "Der Tagesplan für heute ist spätestens ab {time} Uhr bereit.",
     },
   },
   es: {
@@ -162,6 +165,8 @@ export const dictionaries = {
       no_tasks: "Por ahora no hay tareas para hoy.",
       address: "Dirección",
       notes: "Notas",
+      not_ready_title: "Preparando el tablero de obras",
+      not_ready_message: "El tablero de hoy está listo a más tardar a las {time}.",
     },
   },
 };
