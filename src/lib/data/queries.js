@@ -64,3 +64,15 @@ export async function getPantallaCargaManual() {
   if (error) throw error;
   return data.pantalla_carga_manual;
 }
+
+export async function getHistorialDia(fecha) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("historial_diario")
+    .select("obrero_id, obrero_nombre, tipo, obra_nombre")
+    .eq("fecha", fecha)
+    .order("obrero_nombre");
+
+  if (error) throw error;
+  return data;
+}

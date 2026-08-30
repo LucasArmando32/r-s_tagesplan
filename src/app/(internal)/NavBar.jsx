@@ -17,6 +17,13 @@ export default function NavBar() {
           <Logo />
         </Link>
 
+        <Link
+          href="/tablero/verlauf"
+          className="text-sm font-medium text-black/60 hover:text-black/80"
+        >
+          {t("history.title")}
+        </Link>
+
         <div className="ml-auto flex items-center gap-3">
           <LanguageSwitcher />
           <form action={signOutAction}>

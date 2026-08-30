@@ -27,19 +27,54 @@ async function resolverObraCredito(supabase, obraId, libre, motivo) {
   return data?.id || null;
 }
 
+// Para historial_diario: a diferencia de resolverObraCredito(), acá SIEMPRE
+// hay un resultado (incluso Lager y "Frei" liso), porque el historial
+// registra dónde estuvo cada obrero, no solo lo que da crédito de horas.
+async function resolverHistorial(supabase, obraId, libre, motivo) {
+  if (!libre) {
+    if (!obraId) return { tipo: "lager", obraNombre: null };
+    const { data } = await supabase
+      .from("obras")
+      .select("nombre")
+      .eq("id", obraId)
+      .maybeSingle();
+    return { tipo: "obra", obraNombre: data?.nombre || null };
+  }
+  if (motivo === "ferien" || motivo === "krank") {
+    return { tipo: motivo, obraNombre: null };
+  }
+  return { tipo: "frei", obraNombre: null };
+}
+
+async function registrarHistorial(supabase, obreroId, obreroNombre, fecha, obraId, libre, motivo) {
+  const { tipo, obraNombre } = await resolverHistorial(supabase, obraId, libre, motivo);
+  await supabase.from("historial_diario").upsert(
+    {
+      obrero_id: obreroId,
+      obrero_nombre: obreroNombre,
+      fecha,
+      tipo,
+      obra_nombre: obraNombre,
+    },
+    { onConflict: "obrero_id,fecha" }
+  );
+}
+
 export async function moverObrero(obreroId, obraId, libre, motivo = "frei") {
   await requireAdmin();
   const supabase = await createClient();
   const motivoFinal = libre ? motivo : "frei";
 
-  const { error } = await supabase
+  const { data: obreroActualizado, error } = await supabase
     .from("obreros")
     .update({
       obra_actual_id: obraId,
       libre: Boolean(libre),
       motivo_libre: motivoFinal,
     })
-    .eq("id", obreroId);
+    .eq("id", obreroId)
+    .select("nombre")
+    .single();
 
   if (error) return { error: error.message };
 
@@ -69,6 +104,16 @@ export async function moverObrero(obreroId, obraId, libre, motivo = "frei") {
       .eq("obrero_id", obreroId)
       .eq("fecha", hoy);
   }
+
+  await registrarHistorial(
+    supabase,
+    obreroId,
+    obreroActualizado.nombre,
+    hoy,
+    obraId,
+    libre,
+    motivoFinal
+  );
 
   revalidateAll();
   return { error: null };
@@ -138,20 +183,37 @@ export async function borrarObra(id) {
 
 export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
   await requireAdmin();
-  if (!nombre?.trim()) return { error: "missing" };
+  const trimmed = nombre?.trim();
+  if (!trimmed) return { error: "missing" };
   const supabase = await createClient();
 
-  const { error } = await supabase.from("obreros").insert({
-    nombre: nombre.trim(),
-    obra_actual_id: obraId || null,
-    libre: Boolean(libre),
-    tipo: tipo === "auto" ? "auto" : "obrero",
-  });
+  const { data: obreroCreado, error } = await supabase
+    .from("obreros")
+    .insert({
+      nombre: trimmed,
+      obra_actual_id: obraId || null,
+      libre: Boolean(libre),
+      tipo: tipo === "auto" ? "auto" : "obrero",
+    })
+    .select("id, nombre")
+    .single();
 
   if (error) {
     console.error("[crearObrero]", error);
     return { error: error.message };
   }
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  await registrarHistorial(
+    supabase,
+    obreroCreado.id,
+    obreroCreado.nombre,
+    hoy,
+    obraId || null,
+    Boolean(libre),
+    "frei"
+  );
+
   revalidateAll();
   return { error: null };
 }

@@ -91,6 +91,17 @@ export const dictionaries = {
       not_ready_message:
         "Der Tagesplan ist jeden Tag spätestens um 12:00 Uhr bereit.",
     },
+    history: {
+      title: "Verlauf",
+      subtitle: "Wo jeder Arbeiter an einem bestimmten Tag war",
+      empty: "Für diesen Tag gibt es noch keine Einträge.",
+      worker: "Arbeiter",
+      location: "Ort",
+      type_lager: "Lager",
+      type_frei: "Frei",
+      type_ferien: "Ferien",
+      type_krank: "Krank",
+    },
   },
   es: {
     appName: "RS Tablero de Obras",
@@ -180,6 +191,17 @@ export const dictionaries = {
       not_ready_title: "Preparando el tablero de obras",
       not_ready_message:
         "El tablero está listo todos los días a más tardar a las 12:00.",
+    },
+    history: {
+      title: "Historial",
+      subtitle: "Dónde estuvo cada obrero un día determinado",
+      empty: "Todavía no hay registros para este día.",
+      worker: "Obrero",
+      location: "Ubicación",
+      type_lager: "Almacén",
+      type_frei: "Libre",
+      type_ferien: "Vacaciones",
+      type_krank: "Enfermo",
     },
   },
 };
