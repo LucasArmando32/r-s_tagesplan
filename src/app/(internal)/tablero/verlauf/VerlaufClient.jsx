@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import VerlaufTabs from "./VerlaufTabs";
 
 const TIPO_LABEL_KEY = {
   lager: "history.type_lager",
@@ -20,6 +21,7 @@ export default function VerlaufClient({ fecha, historial }) {
 
   return (
     <div>
+      <VerlaufTabs />
       <div className="mb-5 border-b border-black/5 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

@@ -76,3 +76,17 @@ export async function getHistorialDia(fecha) {
   if (error) throw error;
   return data;
 }
+
+export async function getHistorialRango(desde, hasta) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("historial_diario")
+    .select("obrero_nombre, fecha, tipo, obra_nombre")
+    .gte("fecha", desde)
+    .lte("fecha", hasta)
+    .order("obrero_nombre")
+    .order("fecha");
+
+  if (error) throw error;
+  return data;
+}

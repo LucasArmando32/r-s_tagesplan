@@ -64,6 +64,23 @@ export function zurichDateISO(date = new Date()) {
   ).padStart(2, "0")}`;
 }
 
+// Mes de hoy en hora suiza, como "YYYY-MM" — valor por defecto del
+// selector de mes en /tablero/verlauf/monat.
+export function zurichMesISO(date = new Date()) {
+  return zurichDateISO(date).slice(0, 7);
+}
+
+// "YYYY-MM" -> { desde: "YYYY-MM-01", hasta: "YYYY-MM-<último día>" }.
+export function mesRangoISO(mesISO) {
+  const [year, month] = mesISO.split("-").map(Number);
+  const ultimoDia = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const pad = (n) => String(n).padStart(2, "0");
+  return {
+    desde: `${mesISO}-01`,
+    hasta: `${mesISO}-${pad(ultimoDia)}`,
+  };
+}
+
 export function todayISO() {
   const now = new Date();
   const offsetMs = now.getTimezoneOffset() * 60000;
