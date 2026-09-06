@@ -97,6 +97,47 @@ export function diaPlanificacionISO(date = new Date()) {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }
 
+// Cada viernes a partir de esta hora (hora suiza), el plan de obras se
+// resetea solo (todos los que estén en una Baustelle real vuelven a
+// Lager; Frei/Ferien/Krank quedan intactos, no son "trabajo de la
+// semana") — así el fin de semana arranca con un tablero limpio para
+// armar la semana siguiente desde cero. Ver
+// resetearArbeitsplanSiCorresponde() en src/lib/data/dailyReset.js.
+export const ARBEITSPLAN_RESET_DIA_SEMANA = 5; // viernes (0 = domingo)
+export const ARBEITSPLAN_RESET_HORA = 12;
+export const ARBEITSPLAN_RESET_MINUTO = 0;
+
+// El viernes "vigente": el de esta semana si hoy ya lo alcanzamos o es
+// hoy mismo; si no, el de la semana pasada. Sirve tanto para calcular el
+// corte de las 12:00 como para la fecha con la que se etiqueta el reset.
+export function viernesVigenteISO(date = new Date()) {
+  const p = zurichParts(date);
+  const d = new Date(Date.UTC(p.year, p.month - 1, p.day));
+  const diaSemana = d.getUTCDay();
+  let diasAtras = diaSemana - ARBEITSPLAN_RESET_DIA_SEMANA;
+  if (diasAtras < 0) diasAtras += 7;
+  d.setUTCDate(d.getUTCDate() - diasAtras);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+// true si ya pasamos las ARBEITSPLAN_RESET_HORA:MINUTO del viernes vigente
+// y todavía no se reseteó para ese viernes puntual (ultimoResetISO es lo
+// último que se guardó la vez anterior).
+export function debeResetearArbeitsplan(ultimoResetISO) {
+  const now = new Date();
+  const nowValue = zurichSortableValue(now);
+  const viernes = viernesVigenteISO(now);
+  const [y, m, d] = viernes.split("-").map(Number);
+  const viernesCorteValue =
+    ((y * 100 + m) * 100 + d) * 10000 +
+    ARBEITSPLAN_RESET_HORA * 100 +
+    ARBEITSPLAN_RESET_MINUTO;
+
+  if (nowValue < viernesCorteValue) return false;
+  return ultimoResetISO !== viernes;
+}
+
 export function todayISO() {
   const now = new Date();
   const offsetMs = now.getTimezoneOffset() * 60000;

@@ -3,7 +3,10 @@ import {
   registrarVisita,
   isPantallaCargaActiva,
 } from "@/lib/data/public";
-import { resetearKeineArbeitSiCorresponde } from "@/lib/data/dailyReset";
+import {
+  resetearKeineArbeitSiCorresponde,
+  resetearArbeitsplanSiCorresponde,
+} from "@/lib/data/dailyReset";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { formatDateDMY, formatTodayLong, diaPlanificacionISO } from "@/lib/date";
@@ -42,6 +45,7 @@ export default async function PublicBoardPage() {
   const locale = await getLocale();
   await registrarVisita();
   await resetearKeineArbeitSiCorresponde();
+  await resetearArbeitsplanSiCorresponde();
   const t = (path) =>
     path
       .split(".")

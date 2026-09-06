@@ -6,7 +6,10 @@ import {
   getPantallaCargaManual,
 } from "@/lib/data/queries";
 import { diaPlanificacionISO } from "@/lib/date";
-import { resetearKeineArbeitSiCorresponde } from "@/lib/data/dailyReset";
+import {
+  resetearKeineArbeitSiCorresponde,
+  resetearArbeitsplanSiCorresponde,
+} from "@/lib/data/dailyReset";
 import BoardClient from "./BoardClient";
 import ContenedoresManager from "./ContenedoresManager";
 import TareasManager from "./TareasManager";
@@ -14,6 +17,7 @@ import PantallaCargaToggle from "./PantallaCargaToggle";
 
 export default async function TableroPage() {
   await resetearKeineArbeitSiCorresponde();
+  await resetearArbeitsplanSiCorresponde();
 
   // Los contenedores pueden estar en cualquier obra, incluidas las que no
   // aparecen como columna en el tablero (ej. "Hinterkappelen": es solo un
