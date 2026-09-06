@@ -81,6 +81,22 @@ export function mesRangoISO(mesISO) {
   };
 }
 
+// Sábado/domingo no son día laboral: el "día efectivo" del tablero pasa a
+// ser el próximo lunes — así la jefa puede armar el plan del lunes durante
+// el fin de semana (título, historial_diario, asignaciones_diarias, tareas
+// nuevas, el reset de "Keine Arbeit heute") sin que quede fechado al
+// sábado/domingo. Entre semana es simplemente hoy. Se recalcula solo cada
+// medianoche porque es una función pura sobre la fecha/hora actual.
+export function diaPlanificacionISO(date = new Date()) {
+  const p = zurichParts(date);
+  const d = new Date(Date.UTC(p.year, p.month - 1, p.day));
+  const diaSemana = d.getUTCDay(); // 0 = domingo, 6 = sábado
+  if (diaSemana === 6) d.setUTCDate(d.getUTCDate() + 2); // sábado -> lunes
+  else if (diaSemana === 0) d.setUTCDate(d.getUTCDate() + 1); // domingo -> lunes
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
 export function todayISO() {
   const now = new Date();
   const offsetMs = now.getTimezoneOffset() * 60000;
@@ -99,10 +115,15 @@ export function formatDateDMY(isoDate) {
 // primera letra en mayúscula). Se usa tanto en el tablero interno como en
 // la página pública, junto al título — y se recalcula periódicamente en
 // ambos para que el día cambie solo si la pantalla queda abierta.
-export function formatTodayLong(locale) {
+//
+// isoDate opcional: para mostrar diaPlanificacionISO() (el finde, el
+// lunes) en vez del día real de hoy. Sin isoDate, formatea el momento
+// actual como antes.
+export function formatTodayLong(locale, isoDate) {
+  const date = isoDate ? new Date(`${isoDate}T00:00:00`) : new Date();
   const formatted = new Intl.DateTimeFormat(
     locale === "de" ? "de-CH" : "es-AR",
     { weekday: "long", day: "numeric", month: "long", year: "numeric" }
-  ).format(new Date());
+  ).format(date);
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }

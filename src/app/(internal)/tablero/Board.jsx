@@ -12,7 +12,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { formatTodayLong } from "@/lib/date";
+import { formatTodayLong, diaPlanificacionISO } from "@/lib/date";
 import CarIcon from "@/components/CarIcon";
 import Switch from "@/components/Switch";
 import {
@@ -545,7 +545,9 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget, showAddWork
 
 export default function Board({ obras, obreros }) {
   const { t, locale } = useI18n();
-  const [today, setToday] = useState(() => formatTodayLong(locale));
+  const [today, setToday] = useState(() =>
+    formatTodayLong(locale, diaPlanificacionISO())
+  );
   const [prevLocale, setPrevLocale] = useState(locale);
 
   // El idioma pudo cambiar (adjust state during render, sin efecto — ver
@@ -554,11 +556,14 @@ export default function Board({ obras, obreros }) {
   // hacer.
   if (locale !== prevLocale) {
     setPrevLocale(locale);
-    setToday(formatTodayLong(locale));
+    setToday(formatTodayLong(locale, diaPlanificacionISO()));
   }
 
   useEffect(() => {
-    const id = setInterval(() => setToday(formatTodayLong(locale)), DATE_REFRESH_MS);
+    const id = setInterval(
+      () => setToday(formatTodayLong(locale, diaPlanificacionISO())),
+      DATE_REFRESH_MS
+    );
     return () => clearInterval(id);
   }, [locale]);
 
@@ -658,7 +663,7 @@ export default function Board({ obras, obreros }) {
             {t("board.title")}
           </h1>
           <span className="text-sm font-medium text-black/50 sm:text-base">
-            {today}
+            {t("common.for_date")} {today}
           </span>
         </div>
         <p className="mt-1 text-sm text-black/60">{t("board.subtitle")}</p>

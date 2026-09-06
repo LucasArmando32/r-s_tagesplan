@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/guard";
+import { diaPlanificacionISO } from "@/lib/date";
 
 function revalidateAll() {
   revalidatePath("/tablero");
@@ -82,7 +83,7 @@ export async function moverObrero(obreroId, obraId, libre, motivo = "frei") {
   // resolverObraCredito(). Se borra cuando el destino no da crédito (Lager
   // o "Frei" liso), por si ese mismo día ya había una fila de antes (ej.
   // volvió de una Baustelle o de Ferien más temprano).
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = diaPlanificacionISO();
   const obraCreditoId = await resolverObraCredito(
     supabase,
     obraId,
@@ -217,7 +218,7 @@ export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
     return { error: error.message };
   }
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = diaPlanificacionISO();
   await registrarHistorial(
     supabase,
     obreroCreado.id,

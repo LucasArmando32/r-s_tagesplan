@@ -6,7 +6,7 @@ import {
 import { resetearKeineArbeitSiCorresponde } from "@/lib/data/dailyReset";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { formatDateDMY, formatTodayLong } from "@/lib/date";
+import { formatDateDMY, formatTodayLong, diaPlanificacionISO } from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import CarIcon from "@/components/CarIcon";
@@ -29,7 +29,7 @@ function PublicHeader({ t, today }) {
             {t("public.title")}
           </h1>
           <span className="text-base font-medium text-white/70 sm:text-lg">
-            {today}
+            {t("common.for_date")} {today}
           </span>
         </div>
         <p className="text-white/80">{t("public.subtitle")}</p>
@@ -46,7 +46,7 @@ export default async function PublicBoardPage() {
     path
       .split(".")
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
-  const today = formatTodayLong(locale);
+  const today = formatTodayLong(locale, diaPlanificacionISO());
 
   if (await isPantallaCargaActiva()) {
     return (

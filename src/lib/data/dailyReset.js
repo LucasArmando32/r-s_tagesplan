@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { zurichDateISO } from "@/lib/date";
+import { diaPlanificacionISO } from "@/lib/date";
 
 const KEINE_ARBEIT_NOMBRE = "Keine Arbeit heute";
 
@@ -9,6 +9,10 @@ const KEINE_ARBEIT_NOMBRE = "Keine Arbeit heute";
  * día siguiente (hora suiza), cualquier obrero que haya quedado ahí vuelve
  * solo a Lager. Sin cron real: se revisa en cada visita a "/" o "/tablero"
  * y solo corre una vez por día, gracias a estado_pagina_publica.keine_arbeit_reset_en.
+ *
+ * Usa diaPlanificacionISO() (no la fecha real) para que, si lo puso el
+ * sábado/domingo pensando en el lunes, el reset no se dispare antes de
+ * que el lunes real haya terminado.
  *
  * Nunca debe tirar abajo el render de "/" o "/tablero" — es una
  * conveniencia, no algo crítico. Dos requests casi simultáneas (ej. la
@@ -19,7 +23,7 @@ const KEINE_ARBEIT_NOMBRE = "Keine Arbeit heute";
 export async function resetearKeineArbeitSiCorresponde() {
   try {
     const supabase = createAdminClient();
-    const hoy = zurichDateISO();
+    const hoy = diaPlanificacionISO();
 
     const { data: estado, error: estadoError } = await supabase
       .from("estado_pagina_publica")

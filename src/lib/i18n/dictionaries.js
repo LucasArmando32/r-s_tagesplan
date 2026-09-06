@@ -27,6 +27,7 @@ export const dictionaries = {
       save_error: "Etwas ist schiefgelaufen. Bitte nochmal versuchen.",
       confirm_delete: "Wirklich endgültig löschen?",
       none: "—",
+      for_date: "für",
     },
     login: {
       title: "Anmeldung",
@@ -140,6 +141,7 @@ export const dictionaries = {
       save_error: "Algo salió mal. Intentá de nuevo.",
       confirm_delete: "¿Borrar definitivamente?",
       none: "—",
+      for_date: "para el",
     },
     login: {
       title: "Iniciar sesión",

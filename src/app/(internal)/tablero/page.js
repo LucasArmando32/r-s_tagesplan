@@ -5,7 +5,7 @@ import {
   getTareas,
   getPantallaCargaManual,
 } from "@/lib/data/queries";
-import { todayISO } from "@/lib/date";
+import { diaPlanificacionISO } from "@/lib/date";
 import { resetearKeineArbeitSiCorresponde } from "@/lib/data/dailyReset";
 import BoardClient from "./BoardClient";
 import ContenedoresManager from "./ContenedoresManager";
@@ -39,7 +39,11 @@ export default async function TableroPage() {
       </section>
 
       <section className="border-t border-black/10 pt-8">
-        <TareasManager tareas={tareas} obreros={obreros} today={todayISO()} />
+        <TareasManager
+          tareas={tareas}
+          obreros={obreros}
+          today={diaPlanificacionISO()}
+        />
       </section>
     </div>
   );
