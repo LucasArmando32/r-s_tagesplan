@@ -119,7 +119,13 @@ export async function moverObrero(obreroId, obraId, libre, motivo = "frei") {
   return { error: null };
 }
 
-export async function crearObra(nombre, direccion, notas, reisezeitMinutos) {
+export async function crearObra(
+  nombre,
+  direccion,
+  notas,
+  reisezeitMinutos,
+  visiblePublico = true
+) {
   await requireAdmin();
   if (!nombre?.trim()) return { error: "missing" };
   const supabase = await createClient();
@@ -129,6 +135,7 @@ export async function crearObra(nombre, direccion, notas, reisezeitMinutos) {
     direccion: direccion || null,
     notas: notas || null,
     reisezeit_minutos: reisezeitMinutos || null,
+    visible_publico: Boolean(visiblePublico),
   });
 
   if (error) return { error: error.message };
@@ -136,7 +143,13 @@ export async function crearObra(nombre, direccion, notas, reisezeitMinutos) {
   return { error: null };
 }
 
-export async function actualizarObra(id, nombre, direccion, reisezeitMinutos) {
+export async function actualizarObra(
+  id,
+  nombre,
+  direccion,
+  reisezeitMinutos,
+  visiblePublico
+) {
   await requireAdmin();
   if (!id || !nombre?.trim()) return { error: "missing" };
   const supabase = await createClient();
@@ -147,6 +160,7 @@ export async function actualizarObra(id, nombre, direccion, reisezeitMinutos) {
       nombre: nombre.trim(),
       direccion: direccion || null,
       reisezeit_minutos: reisezeitMinutos || null,
+      visible_publico: Boolean(visiblePublico),
     })
     .eq("id", id);
 

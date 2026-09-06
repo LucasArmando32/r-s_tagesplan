@@ -16,10 +16,11 @@ export async function getPublicBoardData() {
       // columna en el tablero interno, ej. "Hinterkappelen": es solo un
       // punto de acopio) porque los nombres de ubicación de las mulden
       // pueden apuntar a cualquiera de ellas. Se filtra por
-      // mostrar_en_tablero más abajo, solo para la sección "Baustellen".
+      // mostrar_en_tablero/visible_publico más abajo, solo para la sección
+      // "Baustellen".
       supabase
         .from("obras")
-        .select("id, nombre, direccion, notas, mostrar_en_tablero")
+        .select("id, nombre, direccion, notas, mostrar_en_tablero, visible_publico")
         .eq("activa", true)
         .order("nombre"),
       supabase
@@ -58,7 +59,7 @@ export async function getPublicBoardData() {
 
   return {
     obras: obras
-      .filter((obra) => obra.mostrar_en_tablero)
+      .filter((obra) => obra.mostrar_en_tablero && obra.visible_publico)
       .map((obra) => {
         const asignados = obrerosPorObra.get(obra.id) || [];
         // El personal siempre antes que los vehículos, igual que en el

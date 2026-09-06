@@ -14,6 +14,7 @@ import {
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { formatTodayLong } from "@/lib/date";
 import CarIcon from "@/components/CarIcon";
+import Switch from "@/components/Switch";
 import {
   moverObrero,
   crearObra,
@@ -273,6 +274,9 @@ function EditObraForm({ obra, onDone }) {
   const [nombre, setNombre] = useState(obra.nombre);
   const [direccion, setDireccion] = useState(obra.direccion || "");
   const [reisezeit, setReisezeit] = useState(obra.reisezeit_minutos ?? "");
+  const [visiblePublico, setVisiblePublico] = useState(
+    obra.visible_publico !== false
+  );
   const [pending, startTransition] = useTransition();
 
   function save() {
@@ -283,7 +287,8 @@ function EditObraForm({ obra, onDone }) {
         obra.id,
         trimmed,
         direccion.trim() || null,
-        reisezeit === "" ? null : Number(reisezeit)
+        reisezeit === "" ? null : Number(reisezeit),
+        visiblePublico
       );
       onDone();
     });
@@ -319,6 +324,16 @@ function EditObraForm({ obra, onDone }) {
         placeholder={t("common.travelTimeMinutes")}
         className="mt-1.5 w-full rounded border border-black/15 px-2 py-1 text-xs focus:border-[var(--color-brand)] focus:outline-none"
       />
+      <button
+        type="button"
+        onClick={() => setVisiblePublico((v) => !v)}
+        className="mt-1.5 flex w-full items-center justify-between gap-2 rounded border border-black/15 px-2 py-1"
+      >
+        <span className="text-xs text-black/70">
+          {t("board.visible_public")}
+        </span>
+        <Switch checked={visiblePublico} />
+      </button>
       <div className="mt-2 flex items-center justify-between">
         <div className="flex gap-2">
           <button
@@ -356,6 +371,7 @@ function AddSiteColumn() {
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
   const [reisezeit, setReisezeit] = useState("");
+  const [visiblePublico, setVisiblePublico] = useState(true);
   const [pending, startTransition] = useTransition();
 
   function submit() {
@@ -369,11 +385,13 @@ function AddSiteColumn() {
         trimmed,
         direccion.trim() || null,
         null,
-        reisezeit === "" ? null : Number(reisezeit)
+        reisezeit === "" ? null : Number(reisezeit),
+        visiblePublico
       );
       setNombre("");
       setDireccion("");
       setReisezeit("");
+      setVisiblePublico(true);
       setAdding(false);
     });
   }
@@ -413,6 +431,16 @@ function AddSiteColumn() {
         placeholder={t("common.travelTimeMinutes")}
         className="mt-2 w-full rounded-lg border border-black/15 bg-white px-2 py-1.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
       />
+      <button
+        type="button"
+        onClick={() => setVisiblePublico((v) => !v)}
+        className="mt-2 flex w-full items-center justify-between gap-2 rounded-lg border border-black/15 px-2 py-1.5"
+      >
+        <span className="text-xs text-black/70">
+          {t("board.visible_public")}
+        </span>
+        <Switch checked={visiblePublico} />
+      </button>
       <div className="mt-2 flex gap-2">
         <button
           type="button"
@@ -465,8 +493,13 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget, showAddWork
             onClick={() => setEditing(true)}
             className="mb-1 w-full rounded-lg px-1 py-1 text-left hover:bg-black/5"
           >
-            <h2 className="font-semibold text-[var(--color-brand-dark)]">
+            <h2 className="flex items-center gap-1.5 font-semibold text-[var(--color-brand-dark)]">
               {obra.nombre}
+              {obra.visible_publico === false && (
+                <span className="rounded-full bg-black/10 px-2 py-0.5 text-xs font-normal text-black/50">
+                  {t("board.hidden_badge")}
+                </span>
+              )}
             </h2>
             {obra.direccion && (
               <p className="text-xs text-black/60">{obra.direccion}</p>

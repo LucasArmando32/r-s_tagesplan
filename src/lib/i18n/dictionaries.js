@@ -50,6 +50,8 @@ export const dictionaries = {
       reason_frei: "Frei",
       reason_ferien: "Ferien",
       reason_krank: "Krank",
+      visible_public: "Für Arbeiter auf der öffentlichen Seite sichtbar",
+      hidden_badge: "Nur intern",
     },
     containers: {
       title: "Mulden",
@@ -161,6 +163,8 @@ export const dictionaries = {
       reason_frei: "Libre",
       reason_ferien: "Vacaciones",
       reason_krank: "Enfermo",
+      visible_public: "Visible para los obreros en la página pública",
+      hidden_badge: "Solo interno",
     },
     containers: {
       title: "Contenedores",
