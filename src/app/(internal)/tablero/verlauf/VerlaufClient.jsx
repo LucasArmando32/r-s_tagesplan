@@ -48,6 +48,9 @@ export default function VerlaufClient({ fecha, historial }) {
               <tr>
                 <th className="px-4 py-2 font-medium">{t("history.worker")}</th>
                 <th className="px-4 py-2 font-medium">{t("history.location")}</th>
+                <th className="px-4 py-2 text-right font-medium">
+                  {t("history.hours")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -61,6 +64,9 @@ export default function VerlaufClient({ fecha, historial }) {
                     {fila.tipo === "obra"
                       ? fila.obra_nombre
                       : t(TIPO_LABEL_KEY[fila.tipo] || fila.tipo)}
+                  </td>
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    {fila.horas ?? t("common.none")}
                   </td>
                 </tr>
               ))}

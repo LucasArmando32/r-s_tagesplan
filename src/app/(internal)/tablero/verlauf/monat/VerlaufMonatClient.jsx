@@ -13,10 +13,15 @@ const COLUMNAS = [
 ];
 
 function exportarCSV(mes, resumen, columnas) {
-  const encabezado = ["Arbeiter/Obrero", ...columnas.map((c) => c.key)];
+  const encabezado = [
+    "Arbeiter/Obrero",
+    ...columnas.map((c) => c.key),
+    "horas",
+  ];
   const filas = resumen.map((fila) => [
     fila.obrero_nombre,
     ...columnas.map((c) => fila[c.key]),
+    fila.horas ?? "",
   ]);
   const csv = [encabezado, ...filas]
     .map((fila) => fila.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
@@ -75,6 +80,9 @@ export default function VerlaufMonatClient({ mes, resumen }) {
                       {t(c.labelKey)}
                     </th>
                   ))}
+                  <th className="px-4 py-2 text-right font-medium">
+                    {t("history.hours")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -89,6 +97,9 @@ export default function VerlaufMonatClient({ mes, resumen }) {
                         {fila[c.key]}
                       </td>
                     ))}
+                    <td className="px-4 py-2 text-right tabular-nums">
+                      {fila.horas ?? t("common.none")}
+                    </td>
                   </tr>
                 ))}
               </tbody>

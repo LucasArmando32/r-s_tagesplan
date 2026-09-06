@@ -83,7 +83,7 @@ export async function getHistorialRango(desde, hasta) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("historial_diario")
-    .select("obrero_nombre, fecha, tipo, obra_nombre")
+    .select("obrero_id, obrero_nombre, fecha, tipo, obra_nombre")
     .gte("fecha", desde)
     .lte("fecha", hasta)
     .order("obrero_nombre")
