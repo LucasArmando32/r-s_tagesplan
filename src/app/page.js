@@ -2,6 +2,7 @@ import {
   getPublicBoardData,
   registrarVisita,
   isPantallaCargaActiva,
+  getDiaActualPublico,
 } from "@/lib/data/public";
 import {
   resetearKeineArbeitSiCorresponde,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/data/dailyReset";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { formatDateDMY, formatTodayLong, diaPlanificacionISO } from "@/lib/date";
+import { formatDateDMY, formatTodayLong } from "@/lib/date";
 import Logo from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import CarIcon from "@/components/CarIcon";
@@ -50,7 +51,7 @@ export default async function PublicBoardPage() {
     path
       .split(".")
       .reduce((acc, key) => acc?.[key], getDictionary(locale)) ?? path;
-  const today = formatTodayLong(locale, diaPlanificacionISO());
+  const today = formatTodayLong(locale, await getDiaActualPublico());
 
   if (await isPantallaCargaActiva()) {
     return (

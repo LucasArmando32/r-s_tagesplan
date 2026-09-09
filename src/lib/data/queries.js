@@ -67,6 +67,18 @@ export async function getPantallaCargaManual() {
   return data.pantalla_carga_manual;
 }
 
+export async function getDiaActual() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("estado_pagina_publica")
+    .select("dia_actual")
+    .eq("id", true)
+    .single();
+
+  if (error) throw error;
+  return data.dia_actual;
+}
+
 export async function getHistorialDia(fecha) {
   const supabase = await createClient();
   const { data, error } = await supabase

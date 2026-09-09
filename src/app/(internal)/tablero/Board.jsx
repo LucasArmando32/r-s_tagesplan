@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -12,7 +12,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { formatTodayLong, diaPlanificacionISO } from "@/lib/date";
+import { formatTodayLong } from "@/lib/date";
 import CarIcon from "@/components/CarIcon";
 import Switch from "@/components/Switch";
 import {
@@ -24,11 +24,8 @@ import {
   crearObrero,
   renombrarObrero,
   borrarObrero,
+  avanzarDiaActual,
 } from "./actions";
-
-// Cada cuánto se recalcula la fecha mostrada — para que cambie sola si el
-// tablero queda abierto de un día para el otro, sin recargar la página.
-const DATE_REFRESH_MS = 60_000;
 
 const WAREHOUSE_ID = "almacen";
 const FREE_ID = "frei";
@@ -543,29 +540,17 @@ function Column({ id, obra, obreros, fixedTitle, variant, addTarget, showAddWork
   );
 }
 
-export default function Board({ obras, obreros }) {
+export default function Board({ obras, obreros, diaActual }) {
   const { t, locale } = useI18n();
-  const [today, setToday] = useState(() =>
-    formatTodayLong(locale, diaPlanificacionISO())
-  );
-  const [prevLocale, setPrevLocale] = useState(locale);
+  // dia_actual es manual (avanzarDiaActual()) — nada de recalcular solo el
+  // día por reloj, así siempre queda claro cuándo y por qué cambió.
+  const today = formatTodayLong(locale, diaActual);
+  const [avanzando, startAvanzarTransition] = useTransition();
 
-  // El idioma pudo cambiar (adjust state during render, sin efecto — ver
-  // el mismo patrón más abajo para obrerosState); el intervalo de abajo
-  // solo se suscribe al reloj, que es justamente lo que un efecto debe
-  // hacer.
-  if (locale !== prevLocale) {
-    setPrevLocale(locale);
-    setToday(formatTodayLong(locale, diaPlanificacionISO()));
+  function avanzarDia() {
+    if (!confirm(t("board.confirm_next_day"))) return;
+    startAvanzarTransition(() => avanzarDiaActual());
   }
-
-  useEffect(() => {
-    const id = setInterval(
-      () => setToday(formatTodayLong(locale, diaPlanificacionISO())),
-      DATE_REFRESH_MS
-    );
-    return () => clearInterval(id);
-  }, [locale]);
 
   const [prevObreros, setPrevObreros] = useState(obreros);
   const [obrerosState, setObrerosState] = useState(obreros);
@@ -658,13 +643,23 @@ export default function Board({ obras, obreros }) {
   return (
     <div>
       <div className="mb-5 border-b border-black/5 pb-4">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-brand-dark)] sm:text-3xl">
-            {t("board.title")}
-          </h1>
-          <span className="text-sm font-medium text-black/50 sm:text-base">
-            {t("common.for_date")} {today}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-brand-dark)] sm:text-3xl">
+              {t("board.title")}
+            </h1>
+            <span className="text-sm font-medium text-black/50 sm:text-base">
+              {t("common.for_date")} {today}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={avanzarDia}
+            disabled={avanzando}
+            className="rounded-lg border border-[var(--color-brand)]/30 px-3 py-1.5 text-sm font-medium text-[var(--color-brand)] hover:bg-[var(--color-brand-muted)] disabled:opacity-60"
+          >
+            {t("board.next_day")}
+          </button>
         </div>
         <p className="mt-1 text-sm text-black/60">{t("board.subtitle")}</p>
       </div>

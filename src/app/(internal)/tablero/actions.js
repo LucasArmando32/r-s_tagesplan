@@ -3,11 +3,46 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/guard";
-import { diaPlanificacionISO } from "@/lib/date";
 
 function revalidateAll() {
   revalidatePath("/tablero");
   revalidatePath("/");
+}
+
+// El día "actual" del Tagesplan (título, historial_diario,
+// asignaciones_diarias, Aufgaben nuevas) es manual — la jefa lo avanza a
+// mano con avanzarDiaActual(), no se calcula solo. Evita la confusión de
+// no saber exactamente cuándo cambiaba.
+async function obtenerDiaActual(supabase) {
+  const { data, error } = await supabase
+    .from("estado_pagina_publica")
+    .select("dia_actual")
+    .eq("id", true)
+    .single();
+  if (error) throw error;
+  return data.dia_actual;
+}
+
+export async function avanzarDiaActual() {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const actual = await obtenerDiaActual(supabase);
+  const siguiente = new Date(`${actual}T00:00:00Z`);
+  siguiente.setUTCDate(siguiente.getUTCDate() + 1);
+  const pad = (n) => String(n).padStart(2, "0");
+  const siguienteISO = `${siguiente.getUTCFullYear()}-${pad(
+    siguiente.getUTCMonth() + 1
+  )}-${pad(siguiente.getUTCDate())}`;
+
+  const { error } = await supabase
+    .from("estado_pagina_publica")
+    .update({ dia_actual: siguienteISO })
+    .eq("id", true);
+
+  if (error) return { error: error.message };
+  revalidateAll();
+  return { error: null, diaActual: siguienteISO };
 }
 
 // Ferien/Krank son un motivo dentro de "Frei", no una Baustelle propia —
@@ -83,7 +118,7 @@ export async function moverObrero(obreroId, obraId, libre, motivo = "frei") {
   // resolverObraCredito(). Se borra cuando el destino no da crédito (Lager
   // o "Frei" liso), por si ese mismo día ya había una fila de antes (ej.
   // volvió de una Baustelle o de Ferien más temprano).
-  const hoy = diaPlanificacionISO();
+  const hoy = await obtenerDiaActual(supabase);
   const obraCreditoId = await resolverObraCredito(
     supabase,
     obraId,
@@ -218,7 +253,7 @@ export async function crearObrero(nombre, obraId, libre, tipo = "obrero") {
     return { error: error.message };
   }
 
-  const hoy = diaPlanificacionISO();
+  const hoy = await obtenerDiaActual(supabase);
   await registrarHistorial(
     supabase,
     obreroCreado.id,

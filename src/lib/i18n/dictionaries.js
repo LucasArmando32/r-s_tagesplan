@@ -53,6 +53,9 @@ export const dictionaries = {
       reason_krank: "Krank",
       visible_public: "Für Arbeiter auf der öffentlichen Seite sichtbar",
       hidden_badge: "Nur intern",
+      next_day: "Nächsten Tag aufschalten",
+      confirm_next_day:
+        "Tagesplan wirklich auf den nächsten Tag weiterschalten?",
     },
     containers: {
       title: "Mulden",
@@ -168,6 +171,8 @@ export const dictionaries = {
       reason_krank: "Enfermo",
       visible_public: "Visible para los obreros en la página pública",
       hidden_badge: "Solo interno",
+      next_day: "Avanzar al día siguiente",
+      confirm_next_day: "¿Avanzar el tablero de obras al día siguiente?",
     },
     containers: {
       title: "Contenedores",

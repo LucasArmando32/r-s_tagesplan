@@ -113,6 +113,27 @@ export async function isPantallaCargaActiva() {
   }
 }
 
+/**
+ * El día que la página pública muestra/usa — manual, la jefa lo avanza a
+ * mano desde /tablero (ver avanzarDiaActual() en actions.js). Si falla la
+ * lectura, cae en la fecha real de hoy para no romper el render.
+ */
+export async function getDiaActualPublico() {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("estado_pagina_publica")
+      .select("dia_actual")
+      .eq("id", true)
+      .single();
+    if (error) throw error;
+    return data.dia_actual;
+  } catch (error) {
+    console.error("[getDiaActualPublico]", error);
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
 export async function registrarVisita() {
   try {
     const supabase = createAdminClient();

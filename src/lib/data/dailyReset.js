@@ -1,22 +1,15 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  diaPlanificacionISO,
-  viernesVigenteISO,
-  debeResetearArbeitsplan,
-} from "@/lib/date";
+import { viernesVigenteISO, debeResetearArbeitsplan } from "@/lib/date";
 
 const KEINE_ARBEIT_NOMBRE = "Keine Arbeit heute";
 
 /**
  * "Keine Arbeit heute" solo vale para el día en que la jefa lo puso — al
- * día siguiente (hora suiza), cualquier obrero que haya quedado ahí vuelve
- * solo a Lager. Sin cron real: se revisa en cada visita a "/" o "/tablero"
- * y solo corre una vez por día, gracias a estado_pagina_publica.keine_arbeit_reset_en.
- *
- * Usa diaPlanificacionISO() (no la fecha real) para que, si lo puso el
- * sábado/domingo pensando en el lunes, el reset no se dispare antes de
- * que el lunes real haya terminado.
+ * avanzar dia_actual (manual, ver avanzarDiaActual() en actions.js),
+ * cualquier obrero que haya quedado ahí vuelve solo a Lager. Sin cron
+ * real: se revisa en cada visita a "/" o "/tablero" y solo corre una vez
+ * por dia_actual, gracias a estado_pagina_publica.keine_arbeit_reset_en.
  *
  * Nunca debe tirar abajo el render de "/" o "/tablero" — es una
  * conveniencia, no algo crítico. Dos requests casi simultáneas (ej. la
@@ -27,14 +20,14 @@ const KEINE_ARBEIT_NOMBRE = "Keine Arbeit heute";
 export async function resetearKeineArbeitSiCorresponde() {
   try {
     const supabase = createAdminClient();
-    const hoy = diaPlanificacionISO();
 
     const { data: estado, error: estadoError } = await supabase
       .from("estado_pagina_publica")
-      .select("keine_arbeit_reset_en")
+      .select("keine_arbeit_reset_en, dia_actual")
       .eq("id", true)
       .single();
     if (estadoError) throw estadoError;
+    const hoy = estado.dia_actual;
     if (estado.keine_arbeit_reset_en === hoy) return;
 
     const { data: obra, error: obraError } = await supabase
